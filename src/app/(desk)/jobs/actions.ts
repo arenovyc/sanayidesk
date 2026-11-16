@@ -1,5 +1,6 @@
 "use server";
 
+import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireDeskSession } from "@/lib/auth/get-membership";
 import { messagePreviewPayload } from "@/lib/media/hash-preview";
@@ -107,7 +108,12 @@ export async function setWorkOrderStatusAction(
   });
   if (error) return { error: mapJobError(error.message) };
 
-  redirect(safeJobReturnTo(parsed.data.returnTo, parsed.data.id));
+  const dest = safeJobReturnTo(parsed.data.returnTo, parsed.data.id);
+  if (dest === `/jobs/${parsed.data.id}` || dest.startsWith(`/jobs/${parsed.data.id}?`)) {
+    revalidatePath(`/jobs/${parsed.data.id}`);
+    return { error: null };
+  }
+  redirect(dest);
 }
 
 /** Sets waiting_approval + logs WA share; caller opens wa.me. */
@@ -148,6 +154,7 @@ export async function shareQuoteSetWaitingApprovalAction(
     });
   }
 
+  revalidatePath(`/jobs/${parsed.data.id}`);
   return { error: null };
 }
 
@@ -209,5 +216,6 @@ export async function updateJobIntakeAction(
     return { error: mapJobError(error.message) };
   }
 
-  redirect(`/jobs/${parsed.data.workOrderId}`);
+  revalidatePath(`/jobs/${parsed.data.workOrderId}`);
+  return { error: null };
 }

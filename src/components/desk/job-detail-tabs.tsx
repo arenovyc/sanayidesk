@@ -25,7 +25,7 @@ export function JobDetailTabs({
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="sticky top-[env(safe-area-inset-top,0px)] z-10 -mx-4 border-b border-neutral-200 bg-neutral-50/95 px-4 py-3 backdrop-blur supports-[backdrop-filter]:bg-neutral-50/90">
+      <div className="sticky top-[env(safe-area-inset-top,0px)] z-10 -mx-4 border-b border-neutral-200 bg-neutral-50 px-4 py-3">
         {summary}
         <div
           role="tablist"

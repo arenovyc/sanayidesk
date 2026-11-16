@@ -19,6 +19,7 @@ import {
   searchWorkOrders,
 } from "@/lib/data/work-orders";
 import { formatIstanbulDate } from "@/lib/format/date";
+import { displayPlate } from "@/lib/format/plate";
 import { waMaintenanceReminderMessage } from "@/lib/format/wa-templates";
 import {
   BUCKET_LABELS,
@@ -68,7 +69,9 @@ export default async function TodayPage({
                   href="/appointments"
                   className="flex justify-between px-4 py-3 text-sm"
                 >
-                  <span className="font-mono tracking-wide">{appt.plate}</span>
+                  <span className="font-mono tracking-wide">
+                    {displayPlate(appt.plate)}
+                  </span>
                   <span className="text-neutral-500">
                     {formatAppointmentTime(appt.scheduledAt)}
                   </span>

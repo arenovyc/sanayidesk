@@ -1,6 +1,6 @@
 "use server";
 
-import { redirect } from "next/navigation";
+import { revalidatePath } from "next/cache";
 import { requireDeskSession } from "@/lib/auth/get-membership";
 import { messagePreviewPayload } from "@/lib/media/hash-preview";
 import {
@@ -37,6 +37,10 @@ function mapMoneyError(message: string): string {
   return message;
 }
 
+function softRefreshJob(workOrderId: string) {
+  revalidatePath(`/jobs/${workOrderId}`);
+}
+
 export async function addWorkOrderItemAction(
   _prev: MoneyActionState,
   formData: FormData,
@@ -61,7 +65,8 @@ export async function addWorkOrderItemAction(
     amount: parsed.data.amount,
   });
   if (error) return { error: mapMoneyError(error.message) };
-  redirect(`/jobs/${parsed.data.workOrderId}`);
+  softRefreshJob(parsed.data.workOrderId);
+  return { error: null };
 }
 
 export async function addPaymentAction(
@@ -89,7 +94,8 @@ export async function addPaymentAction(
     _note: parsed.data.note,
   });
   if (error) return { error: mapMoneyError(error.message) };
-  redirect(`/jobs/${parsed.data.workOrderId}`);
+  softRefreshJob(parsed.data.workOrderId);
+  return { error: null };
 }
 
 export async function addPartRequestAction(
@@ -113,7 +119,8 @@ export async function addPartRequestAction(
     status: "open",
   });
   if (error) return { error: mapMoneyError(error.message) };
-  redirect(`/jobs/${parsed.data.workOrderId}`);
+  softRefreshJob(parsed.data.workOrderId);
+  return { error: null };
 }
 
 export async function voidPaymentAction(
@@ -137,7 +144,8 @@ export async function voidPaymentAction(
     _payment_id: parsed.data.paymentId,
   });
   if (error) return { error: mapMoneyError(error.message) };
-  redirect(`/jobs/${parsed.data.workOrderId}`);
+  softRefreshJob(parsed.data.workOrderId);
+  return { error: null };
 }
 
 export async function logWhatsAppShareAction(
@@ -221,7 +229,8 @@ export async function uploadJobMediaAction(
     }
     return { error: mapMoneyError(error.message) };
   }
-  redirect(`/jobs/${parsed.data.workOrderId}`);
+  softRefreshJob(parsed.data.workOrderId);
+  return { error: null };
 }
 
 function isMissingRelationLike(message: string): boolean {

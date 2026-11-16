@@ -8,10 +8,10 @@ import { JobInventoryIssueForm } from "@/components/desk/inventory-forms";
 import { JobMediaPanel } from "@/components/desk/job-media-form";
 import {
   JobItemsSection,
+  JobPartsSection,
   JobPaymentSection,
 } from "@/components/desk/job-money-forms";
 import { JobIntakeCompleteForm } from "@/components/desk/job-intake-complete-form";
-import { JobQuoteForm } from "@/components/desk/job-quote-form";
 import { JobStatusForm } from "@/components/desk/job-status-form";
 import { QuoteApprovalButton } from "@/components/desk/quote-approval-button";
 import { WhatsAppShareButton } from "@/components/desk/whatsapp-share-button";
@@ -26,7 +26,7 @@ import {
 import { listAssignmentHistory } from "@/lib/data/assignments";
 import { listInventoryItems } from "@/lib/data/inventory";
 import { signedMediaUrls } from "@/lib/data/media-urls";
-import { listTeam } from "@/lib/data/ops";
+import { listDirectory, listTeam } from "@/lib/data/ops";
 import { formatMoney } from "@/lib/format/money";
 import { getWorkOrderDetail } from "@/lib/data/work-orders";
 import { remainingDue } from "@/lib/work-orders/money";
@@ -49,18 +49,22 @@ export default async function JobDetailPage({
     .filter(Boolean)
     .join(" · ");
 
-  const [mediaUrls, team, historyRes, inventoryRes] = await Promise.all([
-    signedMediaUrls(job.media),
-    listTeam(ctx.workspace.id),
-    listAssignmentHistory(ctx.workspace.id, id),
-    listInventoryItems(ctx.workspace.id),
-  ]);
+  const [mediaUrls, team, historyRes, inventoryRes, directory] =
+    await Promise.all([
+      signedMediaUrls(job.media),
+      listTeam(ctx.workspace.id),
+      listAssignmentHistory(ctx.workspace.id, id),
+      listInventoryItems(ctx.workspace.id),
+      listDirectory(ctx.workspace.id),
+    ]);
 
   const mechanics = team.filter(
     (member) => member.role === "mechanic" && member.isActive,
   );
   const active = historyRes.rows.find((row) => !row.unassignedAt) ?? null;
   const remaining = remainingDue(job.due, job.paid);
+  const itemsTotal = job.items.reduce((sum, item) => sum + item.amount, 0);
+  const hasItems = job.items.length > 0;
   const readyPreview = waReadyVehicleMessage({
     shopName: ctx.workspace.name,
     plate: job.plate,
@@ -70,7 +74,7 @@ export default async function JobDetailPage({
   const quotePreview = waQuoteSummaryMessage({
     shopName: ctx.workspace.name,
     plate: job.plate,
-    quoteLabel: formatMoney(job.quoteAmount ?? job.due),
+    quoteLabel: formatMoney(hasItems ? itemsTotal : 0),
     shopPhone: ctx.workspace.settings.phone,
   });
   const needsIntakeComplete =
@@ -78,7 +82,6 @@ export default async function JobDetailPage({
     !job.makeModel ||
     !job.complaint.trim() ||
     !job.customerName;
-  const showQuickQuote = job.items.length === 0;
   const isOwner = ctx.membership.role === "owner";
 
   const summary = (
@@ -191,7 +194,7 @@ export default async function JobDetailPage({
             emphasized={job.status === "ready"}
           />
           <p className="mt-2 text-xs text-neutral-500">
-            WhatsApp açılır; mesajı sen gönderirsin. Otomatik API yok.
+            WhatsApp açılıp mesajı sen gönderirsin. Otomatik API yok.
           </p>
         </div>
       ) : null}
@@ -209,23 +212,25 @@ export default async function JobDetailPage({
     <>
       <JobItemsSection workOrderId={job.id} items={job.items} />
 
-      {showQuickQuote ? (
-        <JobQuoteForm
-          workOrderId={job.id}
-          quoteAmount={job.quoteAmount}
-          compact
-        />
-      ) : null}
-
       <div className="flex flex-col gap-2 rounded-2xl border border-neutral-200 bg-white p-4">
         <p className="text-sm text-neutral-600">
           Fiyat onayı — durum &quot;Onay Bekliyor&quot; olur, WhatsApp açılır.
+          Tutar eklenen kalemlerin toplamıdır.
         </p>
+        {!hasItems ? (
+          <p className="text-sm text-amber-800">
+            Önce kalem ekle; aksi halde toplam ₺0 görünür.
+          </p>
+        ) : null}
         <QuoteApprovalButton
           workOrderId={job.id}
           preview={quotePreview}
           phone={job.customerPhone}
-          disabled={job.status === "delivered" || job.status === "cancelled"}
+          disabled={
+            !hasItems ||
+            job.status === "delivered" ||
+            job.status === "cancelled"
+          }
         />
       </div>
 
@@ -235,6 +240,15 @@ export default async function JobDetailPage({
           items={inventoryRes.rows}
         />
       ) : null}
+
+      <JobPartsSection
+        workOrderId={job.id}
+        parts={job.parts}
+        plate={job.plate}
+        displayNo={job.displayNo}
+        shopName={ctx.workspace.name}
+        directory={directory}
+      />
     </>
   );
 
@@ -253,10 +267,6 @@ export default async function JobDetailPage({
       <JobDisTab
         workspaceId={ctx.workspace.id}
         workOrderId={job.id}
-        shopName={ctx.workspace.name}
-        plate={job.plate}
-        displayNo={job.displayNo}
-        parts={job.parts}
         isOwner={isOwner}
       />
     </Suspense>

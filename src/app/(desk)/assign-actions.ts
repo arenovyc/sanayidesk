@@ -1,5 +1,6 @@
 "use server";
 
+import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireDeskSession } from "@/lib/auth/get-membership";
 import { MISSING_SUPABASE_ENV } from "@/lib/supabase/env";
@@ -49,5 +50,11 @@ export async function assignWorkOrderAction(
     _membership_id: parsed.data.membershipId,
   });
   if (error) return { error: mapAssignError(error.message) };
-  redirect(safeReturnTo(parsed.data.returnTo));
+
+  const dest = safeReturnTo(parsed.data.returnTo);
+  if (dest.startsWith("/jobs/")) {
+    revalidatePath(dest.split("?")[0] ?? dest);
+    return { error: null };
+  }
+  redirect(dest);
 }

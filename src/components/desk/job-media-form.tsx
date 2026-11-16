@@ -1,12 +1,10 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useRef } from "react";
 import {
   uploadJobMediaAction,
   type MoneyActionState,
 } from "@/app/(desk)/jobs/money-actions";
-import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
 import { SchemaHintBanner } from "@/components/ui/schema-hint-banner";
 import type { MediaRow } from "@/lib/work-orders/types";
 
@@ -24,6 +22,8 @@ export function JobMediaPanel({
   schemaMissing?: boolean;
 }) {
   const [state, action, pending] = useActionState(uploadJobMediaAction, initial);
+  const formRef = useRef<HTMLFormElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   if (schemaMissing) {
     return <SchemaHintBanner missing />;
@@ -56,23 +56,36 @@ export function JobMediaPanel({
         </ul>
       )}
       <form
+        ref={formRef}
         action={action}
-        className="grid gap-2 rounded-xl border border-neutral-200 bg-white p-3"
+        className="flex flex-col gap-2 rounded-xl border border-neutral-200 bg-white p-3"
         encType="multipart/form-data"
       >
         <input type="hidden" name="workOrderId" value={workOrderId} />
-        <Label htmlFor="file">JPEG / PNG (max 5 MB)</Label>
         <input
+          ref={inputRef}
           id="file"
           name="file"
           type="file"
           accept="image/jpeg,image/png,image/webp"
+          capture="environment"
           required
-          className="text-sm"
+          className="sr-only"
+          disabled={pending}
+          onChange={() => {
+            if (inputRef.current?.files?.length) {
+              formRef.current?.requestSubmit();
+            }
+          }}
         />
-        <Button type="submit" size="sm" variant="outline" disabled={pending} className="w-fit">
-          Foto yükle
-        </Button>
+        <button
+          type="button"
+          disabled={pending}
+          className="inline-flex h-11 w-full items-center justify-center rounded-lg border border-neutral-300 bg-white px-4 text-sm font-medium text-neutral-900 disabled:opacity-50"
+          onClick={() => inputRef.current?.click()}
+        >
+          {pending ? "Yükleniyor…" : "Fotoğraf Çek / Ekle"}
+        </button>
         {state.error ? <p className="text-sm text-red-700">{state.error}</p> : null}
       </form>
     </section>

@@ -1,6 +1,6 @@
 "use server";
 
-import { redirect } from "next/navigation";
+import { revalidatePath } from "next/cache";
 import { requireDeskSession } from "@/lib/auth/get-membership";
 import { MISSING_SUPABASE_ENV } from "@/lib/supabase/env";
 import { createServerSupabase } from "@/lib/supabase/server";
@@ -37,5 +37,6 @@ export async function setQuoteAmountAction(
         : error.message,
     };
   }
-  redirect(`/jobs/${parsed.data.workOrderId}`);
+  revalidatePath(`/jobs/${parsed.data.workOrderId}`);
+  return { error: null };
 }

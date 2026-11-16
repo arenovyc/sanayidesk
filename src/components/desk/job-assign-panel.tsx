@@ -2,6 +2,10 @@ import { AssignForm } from "@/components/desk/assign-form";
 import { SchemaHintBanner } from "@/components/ui/schema-hint-banner";
 import type { AssignmentHistoryRow } from "@/lib/data/assignments";
 import type { TeamMember } from "@/lib/data/ops";
+import {
+  formatAssignedAtLabel,
+  formatAssignmentRangeLabel,
+} from "@/lib/format/date";
 
 export function JobAssignPanel({
   workOrderId,
@@ -37,10 +41,9 @@ export function JobAssignPanel({
             <li key={row.id} className="px-4 py-2.5 text-sm">
               <p className="font-medium">{row.displayName}</p>
               <p className="text-xs text-neutral-500">
-                {new Date(row.assignedAt).toLocaleString("tr-TR")}
                 {row.unassignedAt
-                  ? ` → ${new Date(row.unassignedAt).toLocaleString("tr-TR")}`
-                  : " · aktif"}
+                  ? formatAssignmentRangeLabel(row.assignedAt, row.unassignedAt)
+                  : formatAssignedAtLabel(row.assignedAt)}
               </p>
             </li>
           ))}

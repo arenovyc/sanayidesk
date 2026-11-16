@@ -1,5 +1,6 @@
 "use server";
 
+import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireDeskSession } from "@/lib/auth/get-membership";
 import { MISSING_SUPABASE_ENV } from "@/lib/supabase/env";
@@ -81,7 +82,11 @@ export async function moveInventoryAction(
   if (error) return { error: mapInventoryError(error.message) };
 
   const returnTo = String(formData.get("returnTo") ?? "").trim();
-  if (returnTo.startsWith("/jobs/") || returnTo === "/inventory") {
+  if (returnTo.startsWith("/jobs/")) {
+    revalidatePath(returnTo.split("?")[0] ?? returnTo);
+    return { error: null };
+  }
+  if (returnTo === "/inventory") {
     redirect(returnTo);
   }
   redirect("/inventory");

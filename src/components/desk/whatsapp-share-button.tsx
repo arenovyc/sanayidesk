@@ -47,7 +47,7 @@ export function WhatsAppShareButton({
 export function WhatsAppShareHint() {
   return (
     <p className="text-xs text-neutral-500">
-      WhatsApp açılır; mesajı sen gönderirsin.
+      WhatsApp açılıp mesajı sen gönderirsin.
     </p>
   );
 }

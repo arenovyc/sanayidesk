@@ -43,11 +43,22 @@ export function JobItemsSection({
     initial,
   );
 
+  const itemsTotal = items.reduce((sum, item) => sum + item.amount, 0);
+
   return (
     <section className="flex flex-col gap-3">
-      <h2 className="text-sm font-medium text-neutral-500">Kalemler</h2>
+      <div className="flex items-baseline justify-between gap-2">
+        <h2 className="text-sm font-medium text-neutral-500">Kalemler</h2>
+        {items.length > 0 ? (
+          <p className="text-sm font-semibold text-neutral-800">
+            Toplam {formatMoney(itemsTotal)}
+          </p>
+        ) : null}
+      </div>
       {items.length === 0 ? (
-        <p className="text-sm text-neutral-400">Henüz kalem yok.</p>
+        <p className="text-sm text-neutral-400">
+          Henüz kalem yok. Aşağıdan işçilik veya parça tutarı ekle.
+        </p>
       ) : (
         <ul className="divide-y divide-neutral-100 rounded-xl border border-neutral-200 bg-white">
           {items.map((item) => (
@@ -63,10 +74,11 @@ export function JobItemsSection({
       )}
       <form
         action={itemAction}
-        className="grid gap-2 rounded-xl border border-neutral-200 bg-white p-3"
+        className="grid gap-3 rounded-2xl border-2 border-neutral-300 bg-white p-4 shadow-sm"
       >
+        <h3 className="font-medium text-neutral-900">Kalem ekle</h3>
         <input type="hidden" name="workOrderId" value={workOrderId} />
-        <div className="grid gap-2 sm:grid-cols-3">
+        <div className="grid gap-3 sm:grid-cols-3">
           <div className="flex flex-col gap-1.5">
             <Label htmlFor="kind">Tür</Label>
             <select
@@ -85,7 +97,7 @@ export function JobItemsSection({
             <Input id="description" name="description" required />
           </div>
           <div className="flex flex-col gap-1.5">
-            <Label htmlFor="amount">Tutar</Label>
+            <Label htmlFor="amount">Tutar (₺)</Label>
             <Input
               id="amount"
               name="amount"
@@ -95,7 +107,7 @@ export function JobItemsSection({
             />
           </div>
           <div className="flex items-end sm:col-span-2 sm:justify-end">
-            <Button type="submit" size="sm" disabled={itemPending}>
+            <Button type="submit" disabled={itemPending}>
               Kalem ekle
             </Button>
           </div>

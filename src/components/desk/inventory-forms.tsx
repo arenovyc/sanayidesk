@@ -156,7 +156,7 @@ export function InventoryPanel({
         >
           {items.map((item) => (
             <option key={item.id} value={item.id}>
-              {item.name} ({item.qty})
+              {item.name} — Stok: {item.qty} adet
             </option>
           ))}
         </select>
@@ -202,7 +202,7 @@ export function InventoryPanel({
         >
           {items.map((item) => (
             <option key={item.id} value={item.id}>
-              {item.name} ({item.qty})
+              {item.name} — Stok: {item.qty} adet
             </option>
           ))}
         </select>
@@ -403,7 +403,7 @@ export function JobInventoryIssueForm({
       >
         {items.map((item) => (
           <option key={item.id} value={item.id}>
-            {item.name} ({item.qty})
+            {item.name} — Stok: {item.qty} adet
           </option>
         ))}
       </select>
