@@ -1,13 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { useActionState, useState } from "react";
+import { useActionState } from "react";
 import { registerAction, type AuthActionState } from "@/app/(auth)/actions";
 import { GoogleAuthButton } from "@/components/auth/google-auth-button";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { slugifyShopName } from "@/lib/format/slug";
 
 const initial: AuthActionState = { error: null };
 
@@ -21,35 +20,35 @@ export function RegisterForm({
   oauthMode?: boolean;
 }) {
   const [state, action, pending] = useActionState(registerAction, initial);
-  const [shopName, setShopName] = useState("");
-  const [slug, setSlug] = useState("");
-  const [slugTouched, setSlugTouched] = useState(false);
 
   return (
     <div className="flex flex-col gap-4">
-      {!oauthMode ? (
-        <>
-          <GoogleAuthButton label="Google ile devam et" />
-          <div className="relative flex items-center gap-3">
-            <div className="h-px flex-1 bg-neutral-200" />
-            <span className="text-xs text-neutral-400">veya e-posta</span>
-            <div className="h-px flex-1 bg-neutral-200" />
-          </div>
-        </>
-      ) : (
-        <p className="rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-2 text-sm text-neutral-600">
-          Google hesabın bağlı. Dükkan bilgilerini doldur.
-          {defaultEmail ? (
-            <>
-              {" "}
-              <span className="font-medium text-neutral-950">{defaultEmail}</span>
-            </>
-          ) : null}
-        </p>
-      )}
+      <p className="rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-950">
+        2 dakikada dükkanın hazır — kart yok, kurulum yok.
+      </p>
+
       <form action={action} className="flex flex-col gap-4">
         <div className="flex flex-col gap-1.5">
-          <Label htmlFor="fullName">Adın</Label>
+          <Label htmlFor="shopName">Dükkan adı</Label>
+          <Input
+            id="shopName"
+            name="shopName"
+            required
+            autoComplete="organization"
+            placeholder="Öztürk Oto"
+          />
+        </div>
+        <div className="flex flex-col gap-1.5">
+          <Label htmlFor="cityDistrict">İl / İlçe</Label>
+          <Input
+            id="cityDistrict"
+            name="cityDistrict"
+            required
+            placeholder="Ankara / Ostim"
+          />
+        </div>
+        <div className="flex flex-col gap-1.5">
+          <Label htmlFor="fullName">Yetkili adı soyadı</Label>
           <Input
             id="fullName"
             name="fullName"
@@ -59,34 +58,16 @@ export function RegisterForm({
           />
         </div>
         <div className="flex flex-col gap-1.5">
-          <Label htmlFor="shopName">Dükkan adı</Label>
+          <Label htmlFor="phone">Cep telefonu (WhatsApp)</Label>
           <Input
-            id="shopName"
-            name="shopName"
+            id="phone"
+            name="phone"
+            type="tel"
+            inputMode="tel"
+            autoComplete="tel"
             required
-            value={shopName}
-            onChange={(event) => {
-              const next = event.target.value;
-              setShopName(next);
-              if (!slugTouched) setSlug(slugifyShopName(next));
-            }}
+            placeholder="05xx xxx xx xx"
           />
-        </div>
-        <div className="flex flex-col gap-1.5">
-          <Label htmlFor="slug">Dükkan kodu</Label>
-          <Input
-            id="slug"
-            name="slug"
-            required
-            value={slug}
-            onChange={(event) => {
-              setSlugTouched(true);
-              setSlug(event.target.value.toLowerCase());
-            }}
-          />
-          <p className="text-xs text-neutral-500">
-            Usta PIN girişinde bu kod kullanılacak.
-          </p>
         </div>
         {!oauthMode ? (
           <>
@@ -113,7 +94,17 @@ export function RegisterForm({
               />
             </div>
           </>
-        ) : null}
+        ) : (
+          <p className="rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-2 text-sm text-neutral-600">
+            Google hesabın bağlı.
+            {defaultEmail ? (
+              <>
+                {" "}
+                <span className="font-medium text-neutral-950">{defaultEmail}</span>
+              </>
+            ) : null}
+          </p>
+        )}
         {state.error ? (
           <p className="text-sm text-red-700" role="alert">
             {state.error}
@@ -123,16 +114,25 @@ export function RegisterForm({
           {pending ? "Açılıyor…" : "Dükkanı aç"}
         </Button>
       </form>
+
       {!oauthMode ? (
-        <p className="text-center text-sm text-neutral-500">
-          Hesabın var mı?{" "}
-          <Link
-            href="/login"
-            className="font-medium text-neutral-950 underline-offset-4 hover:underline"
-          >
-            Giriş
-          </Link>
-        </p>
+        <>
+          <div className="relative flex items-center gap-3">
+            <div className="h-px flex-1 bg-neutral-200" />
+            <span className="text-xs text-neutral-400">veya Google</span>
+            <div className="h-px flex-1 bg-neutral-200" />
+          </div>
+          <GoogleAuthButton label="Google ile devam et" />
+          <p className="text-center text-sm text-neutral-500">
+            Hesabın var mı?{" "}
+            <Link
+              href="/login"
+              className="font-medium text-neutral-950 underline-offset-4 hover:underline"
+            >
+              Giriş
+            </Link>
+          </p>
+        </>
       ) : null}
     </div>
   );

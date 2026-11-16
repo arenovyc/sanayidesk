@@ -53,7 +53,7 @@ async function AdminBody() {
       <section className="flex flex-col gap-3">
         <h2 className="text-sm font-medium text-neutral-500">Dükkanlar</h2>
         <p className="text-sm text-neutral-500">
-          Plan, deneme bitişi ve askıya alma.
+          Self-serve kayıtlar, aktivasyon ve WhatsApp karşılama.
         </p>
         {workspaces.error ? (
           <p className="text-sm text-red-700">{workspaces.error}</p>

@@ -13,6 +13,7 @@ import {
   resetPasswordSchema,
 } from "@/lib/validations/auth";
 import { passwordLoginHint } from "@/lib/auth/login-hint";
+import { slugifyShopName } from "@/lib/format/slug";
 import { getSiteUrl, MISSING_SUPABASE_ENV } from "@/lib/supabase/env";
 import { createServerSupabase } from "@/lib/supabase/server";
 
@@ -20,6 +21,42 @@ export type AuthActionState = {
   error: string | null;
   message?: string | null;
 };
+
+function randomShopSuffix(): string {
+  return String(Math.floor(100 + Math.random() * 900));
+}
+
+function makeShopSlug(shopName: string): string {
+  const base = slugifyShopName(shopName).slice(0, 44);
+  return `${base}-${randomShopSuffix()}`;
+}
+
+async function callRegisterShop(
+  supabase: NonNullable<Awaited<ReturnType<typeof createServerSupabase>>>,
+  input: {
+    shopName: string;
+    fullName: string;
+    phone: string;
+    cityDistrict: string;
+  },
+): Promise<{ slug: string } | { error: string }> {
+  for (let attempt = 0; attempt < 5; attempt += 1) {
+    const slug = makeShopSlug(input.shopName);
+    const { error } = await supabase.rpc("register_shop", {
+      _name: input.shopName,
+      _slug: slug,
+      _full_name: input.fullName,
+      _owner_phone: input.phone,
+      _city_district: input.cityDistrict,
+    });
+    if (!error) return { slug };
+    if (error.message.toLowerCase().includes("slug_taken") && attempt < 4) {
+      continue;
+    }
+    return { error: mapAuthError(error.message) };
+  }
+  return { error: "Dükkan kodu üretilemedi. Tekrar dene." };
+}
 
 function mapAuthError(message: string): string {
   const text = message.toLowerCase();
@@ -92,27 +129,23 @@ export async function registerAction(
     const parsed = oauthRegisterSchema.safeParse({
       fullName: String(formData.get("fullName") ?? ""),
       shopName: String(formData.get("shopName") ?? ""),
-      slug: String(formData.get("slug") ?? ""),
+      cityDistrict: String(formData.get("cityDistrict") ?? ""),
+      phone: String(formData.get("phone") ?? ""),
     });
     if (!parsed.success) {
       return { error: firstZodError(parsed.error) };
     }
 
-    const { error: rpcError } = await supabase.rpc("register_shop", {
-      _name: parsed.data.shopName,
-      _slug: parsed.data.slug,
-      _full_name: parsed.data.fullName,
-    });
-    if (rpcError) {
-      return { error: mapAuthError(rpcError.message) };
-    }
-    redirect("/welcome");
+    const result = await callRegisterShop(supabase, parsed.data);
+    if ("error" in result) return { error: result.error };
+    redirect(`/today?shopCode=${encodeURIComponent(result.slug)}`);
   }
 
   const parsed = registerSchema.safeParse({
     fullName: String(formData.get("fullName") ?? ""),
     shopName: String(formData.get("shopName") ?? ""),
-    slug: String(formData.get("slug") ?? ""),
+    cityDistrict: String(formData.get("cityDistrict") ?? ""),
+    phone: String(formData.get("phone") ?? ""),
     email: String(formData.get("email") ?? ""),
     password: String(formData.get("password") ?? ""),
   });
@@ -134,19 +167,21 @@ export async function registerAction(
   }
   user = data.user;
   if (!data.session || !user) {
-    redirect("/auth/confirm-pending");
+    return {
+      error:
+        "Hesap oluştu ama oturum açılamadı. Supabase’te e-posta onayı kapalı olmalı; ardından giriş yap.",
+    };
   }
 
-  const { error: rpcError } = await supabase.rpc("register_shop", {
-    _name: parsed.data.shopName,
-    _slug: parsed.data.slug,
-    _full_name: parsed.data.fullName,
+  const result = await callRegisterShop(supabase, {
+    shopName: parsed.data.shopName,
+    fullName: parsed.data.fullName,
+    phone: parsed.data.phone,
+    cityDistrict: parsed.data.cityDistrict,
   });
-  if (rpcError) {
-    return { error: mapAuthError(rpcError.message) };
-  }
+  if ("error" in result) return { error: result.error };
 
-  redirect("/welcome");
+  redirect(`/today?shopCode=${encodeURIComponent(result.slug)}`);
 }
 
 export async function forgotPasswordAction(

@@ -10,6 +10,85 @@ export type AdminActionState = {
   error: string | null;
 };
 
+const workspaceIdSchema = z.object({
+  workspaceId: z.uuid(),
+});
+
+async function requireAdminClient() {
+  await requirePlatformAdmin();
+  const admin = createAdminSupabase();
+  if (!admin) {
+    return {
+      admin: null as ReturnType<typeof createAdminSupabase>,
+      error: MISSING_SERVICE_ROLE || MISSING_SUPABASE_ENV,
+    };
+  }
+  return { admin, error: null as string | null };
+}
+
+export async function extendTrial15Action(
+  _prev: AdminActionState,
+  formData: FormData,
+): Promise<AdminActionState> {
+  const parsed = workspaceIdSchema.safeParse({
+    workspaceId: String(formData.get("workspaceId") ?? ""),
+  });
+  if (!parsed.success) {
+    return { error: parsed.error.issues[0]?.message ?? "Geçersiz form" };
+  }
+
+  const { admin, error: clientError } = await requireAdminClient();
+  if (!admin) return { error: clientError ?? "Yetki yok" };
+
+  const { data: row, error: fetchError } = await admin
+    .from("workspaces")
+    .select("trial_ends_at")
+    .eq("id", parsed.data.workspaceId)
+    .maybeSingle();
+  if (fetchError) return { error: fetchError.message };
+
+  const now = Date.now();
+  const current = row?.trial_ends_at
+    ? new Date(row.trial_ends_at as string).getTime()
+    : NaN;
+  const base = Number.isNaN(current) ? now : Math.max(now, current);
+  const trialEndsAt = new Date(base + 15 * 86_400_000).toISOString();
+
+  const { error } = await admin
+    .from("workspaces")
+    .update({ trial_ends_at: trialEndsAt, is_suspended: false })
+    .eq("id", parsed.data.workspaceId);
+
+  if (error) return { error: error.message };
+  redirect("/admin");
+}
+
+export async function activateWorkspaceAction(
+  _prev: AdminActionState,
+  formData: FormData,
+): Promise<AdminActionState> {
+  const parsed = workspaceIdSchema.safeParse({
+    workspaceId: String(formData.get("workspaceId") ?? ""),
+  });
+  if (!parsed.success) {
+    return { error: parsed.error.issues[0]?.message ?? "Geçersiz form" };
+  }
+
+  const { admin, error: clientError } = await requireAdminClient();
+  if (!admin) return { error: clientError ?? "Yetki yok" };
+
+  const { error } = await admin
+    .from("workspaces")
+    .update({
+      plan: "active",
+      is_suspended: false,
+    })
+    .eq("id", parsed.data.workspaceId);
+
+  if (error) return { error: error.message };
+  redirect("/admin");
+}
+
 const updateSchema = z.object({
   workspaceId: z.uuid(),
   plan: z.string().trim().min(1).max(40),

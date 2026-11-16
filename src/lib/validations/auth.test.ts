@@ -28,11 +28,12 @@ test("loginSchema requires email and password", () => {
   );
 });
 
-test("registerSchema requires 8-char password and valid slug", () => {
+test("registerSchema requires shop fields, phone, and 8-char password", () => {
   const ok = registerSchema.safeParse({
-    fullName: "Aren",
-    shopName: "Test Dükkan",
-    slug: "test-dukkan",
+    fullName: "Aren Yılmaz",
+    shopName: "Öztürk Oto",
+    cityDistrict: "Ankara / Ostim",
+    phone: "05321234567",
     email: "a@b.com",
     password: "12345678",
   });
@@ -41,27 +42,30 @@ test("registerSchema requires 8-char password and valid slug", () => {
   const short = registerSchema.safeParse({
     fullName: "Aren",
     shopName: "Test",
-    slug: "test",
+    cityDistrict: "Ankara",
+    phone: "05321234567",
     email: "a@b.com",
     password: "123",
   });
   assert.equal(short.success, false);
 
-  const badSlug = registerSchema.safeParse({
+  const noPhone = registerSchema.safeParse({
     fullName: "Aren",
     shopName: "Test",
-    slug: "Bad Slug",
+    cityDistrict: "Ankara",
+    phone: "123",
     email: "a@b.com",
     password: "12345678",
   });
-  assert.equal(badSlug.success, false);
+  assert.equal(noPhone.success, false);
 });
 
 test("oauthRegisterSchema does not require email or password", () => {
   const ok = oauthRegisterSchema.safeParse({
-    fullName: "Aren",
-    shopName: "Test Dükkan",
-    slug: "test-dukkan",
+    fullName: "Aren Yılmaz",
+    shopName: "Öztürk Oto",
+    cityDistrict: "Ankara / Ostim",
+    phone: "0532 123 45 67",
   });
   assert.equal(ok.success, true);
 });

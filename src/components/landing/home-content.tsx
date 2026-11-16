@@ -59,12 +59,14 @@ export function HomeContent({
               >
                 <Link href="/register">{TRIAL_DAYS} gün ücretsiz başla</Link>
               </Button>
-              <a
-                href="#nasil-calisir"
-                className="inline-flex h-12 items-center justify-center rounded-lg border border-zinc-700 bg-zinc-900/70 px-6 text-base font-medium text-zinc-200 transition-colors hover:bg-zinc-900 hover:text-white"
+              <Button
+                asChild
+                size="lg"
+                variant="outline"
+                className="border-zinc-600 bg-zinc-900/70 text-zinc-100 hover:bg-zinc-900 hover:text-white"
               >
-                Nasıl çalışır?
-              </a>
+                <Link href="/demo">Kayıt olmadan canlı demoyu incele</Link>
+              </Button>
             </>
           )}
         </div>
@@ -74,6 +76,10 @@ export function HomeContent({
         <p className="mt-10 text-center text-sm text-neutral-500">
           {TRIAL_DAYS} gün ücretsiz · kart yok · kurulum yok — telefondan ve
           bilgisayardan anında çalışır.
+        </p>
+        <p className="mt-2 text-center text-xs leading-5 text-neutral-600">
+          Resmi muhasebe veya maliyeye bağlı değildir — sadece dükkan içi iş ve
+          veresiye takibidir.
         </p>
 
         <section className="mt-20 grid gap-10 md:grid-cols-2">

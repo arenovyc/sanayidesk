@@ -3,6 +3,7 @@ import { AcceptForm } from "@/components/desk/accept-form";
 import { ClearRemindButton } from "@/components/desk/clear-remind-button";
 import { JobRow } from "@/components/desk/job-row";
 import { JobSearch } from "@/components/desk/job-search";
+import { ShopCodeBanner } from "@/components/desk/shop-code-banner";
 import {
   WhatsAppShareButton,
   WhatsAppShareHint,
@@ -30,7 +31,7 @@ import {
 export default async function TodayPage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string }>;
+  searchParams: Promise<{ q?: string; shopCode?: string }>;
 }) {
   const ctx = await requireDeskSession();
   const query = await searchParams;
@@ -48,6 +49,7 @@ export default async function TodayPage({
         title="Bugün"
         description="Plaka kabul, sıradaki randevu ve açık işler."
       />
+      <ShopCodeBanner shopCode={query.shopCode} />
       <AcceptForm />
       <JobSearch />
 

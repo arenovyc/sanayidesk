@@ -1,5 +1,4 @@
 import { z } from "zod";
-import { isValidShopSlug } from "@/lib/format/slug";
 
 export const loginSchema = z.object({
   email: z.email("E-posta geçersiz"),
@@ -7,27 +6,29 @@ export const loginSchema = z.object({
   remember: z.boolean(),
 });
 
-export const registerSchema = z.object({
+const phoneSchema = z
+  .string()
+  .trim()
+  .min(10, "Cep telefonu gerekli")
+  .max(20, "Telefon çok uzun")
+  .refine((value) => value.replace(/\D/g, "").length >= 10, "Geçerli bir cep numarası gir");
+
+const shopFields = {
   fullName: z.string().trim().min(2, "Ad en az 2 karakter"),
   shopName: z.string().trim().min(2, "Dükkan adı gerekli"),
-  slug: z
-    .string()
-    .trim()
-    .toLowerCase()
-    .refine(isValidShopSlug, "Kod yalnızca küçük harf, rakam ve tire olabilir"),
+  cityDistrict: z.string().trim().min(2, "İl / İlçe gerekli"),
+  phone: phoneSchema,
+};
+
+export const registerSchema = z.object({
+  ...shopFields,
   email: z.email("E-posta geçersiz"),
   password: z.string().min(8, "Şifre en az 8 karakter"),
 });
 
 /** Google / mevcut oturum ile dükkan aç — e-posta ve şifre session’dan gelir */
 export const oauthRegisterSchema = z.object({
-  fullName: z.string().trim().min(2, "Ad en az 2 karakter"),
-  shopName: z.string().trim().min(2, "Dükkan adı gerekli"),
-  slug: z
-    .string()
-    .trim()
-    .toLowerCase()
-    .refine(isValidShopSlug, "Kod yalnızca küçük harf, rakam ve tire olabilir"),
+  ...shopFields,
 });
 
 export const forgotPasswordSchema = z.object({

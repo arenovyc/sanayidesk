@@ -26,6 +26,8 @@ Env (Production + Preview):
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Legacy `anon` JWT (`eyJ…`) |
 | `SUPABASE_SERVICE_ROLE_KEY` | Legacy `service_role` (server-only) |
 | `PLATFORM_ADMIN_EMAILS` | `/admin` için virgüllü e-postalar |
+| `DEMO_LOGIN_EMAIL` | `/demo` tek tık canlı demo (örn. `demo@baskent-oto.local`) |
+| `DEMO_LOGIN_PASSWORD` | Demo hesap şifresi |
 | `RESEND_API_KEY` | Opsiyonel — başvuru maili |
 | `RESEND_FROM_EMAIL` | Opsiyonel — doğrulanmış gönderen |
 | `LEADS_NOTIFY_EMAIL` | Opsiyonel — yeni lead bildirimi |

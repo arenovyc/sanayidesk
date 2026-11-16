@@ -34,7 +34,7 @@ async function RegisterBody() {
       <p className="mb-6 text-sm text-neutral-500">
         {oauthMode
           ? `Hesabın hazır. ${TRIAL_DAYS} gün ücretsiz deneme ile dükkanını oluştur.`
-          : `İlk hesap dükkan sahibi olur · ${TRIAL_DAYS} gün ücretsiz · kart yok.`}
+          : `${TRIAL_DAYS} gün ücretsiz · kart yok · 2 dakikada başla.`}
       </p>
       <RegisterForm
         oauthMode={oauthMode}
