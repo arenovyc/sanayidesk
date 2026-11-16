@@ -1,0 +1,10 @@
+# Minimal Supabase CLI config for remote migrations (npm run db:push).
+# Link once: npx supabase login && npx supabase link --project-ref <ref>
+
+project_id = "sanayidesk"
+
+[db]
+major_version = 15
+
+[db.migrations]
+schema_paths = []
