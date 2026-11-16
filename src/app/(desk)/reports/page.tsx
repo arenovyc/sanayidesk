@@ -16,7 +16,7 @@ export default function ReportsPage({
   searchParams: Promise<{ from?: string; to?: string }>;
 }) {
   return (
-    <Suspense fallback={<PageSkeleton />}>
+    <Suspense fallback={null}>
       <ReportsBody searchParams={searchParams} />
     </Suspense>
   );

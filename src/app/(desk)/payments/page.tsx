@@ -1,5 +1,3 @@
-import { Suspense } from "react";
-import { PageSkeleton } from "@/components/ui/skeleton";
 import Link from "next/link";
 import { Banknote } from "lucide-react";
 import { PageHeader } from "@/components/shells/page-header";
@@ -15,15 +13,7 @@ const METHOD_LABELS: Record<string, string> = {
   credit: "Veresiye",
 };
 
-export default function PaymentsPage() {
-  return (
-    <Suspense fallback={<PageSkeleton />}>
-      <PaymentsBody />
-    </Suspense>
-  );
-}
-
-async function PaymentsBody() {
+export default async function PaymentsPage() {
   const ctx = await requireDeskSession();
   const payments = await listRecentPayments(ctx.workspace.id);
 

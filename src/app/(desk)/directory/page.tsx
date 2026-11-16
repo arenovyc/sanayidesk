@@ -7,7 +7,7 @@ import { listDirectory } from "@/lib/data/ops";
 
 export default function DirectoryPage() {
   return (
-    <Suspense fallback={<PageSkeleton />}>
+    <Suspense fallback={null}>
       <DirectoryBody />
     </Suspense>
   );

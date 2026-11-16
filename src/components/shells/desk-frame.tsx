@@ -1,16 +1,39 @@
 import { Suspense } from "react";
+import { ViewTransition } from "react";
 import { BottomNav } from "@/components/shells/bottom-nav";
 import { TopBar } from "@/components/shells/top-bar";
-import { PageSkeleton } from "@/components/ui/skeleton";
 import { requireDeskSession } from "@/lib/auth/get-membership";
 import { getDeskNotificationCounts } from "@/lib/data/notifications";
 
 function TopBarFallback() {
   return (
-    <header className="flex h-[3.75rem] items-center border-b border-neutral-200 bg-white px-4 pt-[max(0.75rem,env(safe-area-inset-top))] print:hidden">
-      <div className="h-8 w-8 animate-pulse rounded-lg bg-neutral-200/80" />
-      <div className="ml-3 h-4 w-36 animate-pulse rounded bg-neutral-200/80" />
+    <header className="flex items-center justify-between gap-3 border-b border-neutral-200 bg-white px-4 py-3 pt-[max(0.75rem,env(safe-area-inset-top))] print:hidden">
+      <div className="flex min-w-0 items-center gap-3">
+        <div className="size-8 shrink-0 rounded-lg bg-neutral-950" />
+        <div className="min-w-0 space-y-1.5">
+          <div className="h-3.5 w-40 rounded bg-neutral-200/80" />
+          <div className="h-3 w-24 rounded bg-neutral-100" />
+        </div>
+      </div>
+      <div className="h-9 w-16 rounded-lg bg-neutral-100" />
     </header>
+  );
+}
+
+function BottomNavFallback() {
+  return (
+    <nav className="fixed inset-x-0 bottom-0 z-20 border-t border-neutral-200 bg-white/95 pb-[env(safe-area-inset-bottom)] backdrop-blur print:hidden">
+      <ul className="mx-auto flex max-w-lg">
+        {["Bugün", "İşler", "Tahsilat", "Daha fazla"].map((label) => (
+          <li key={label} className="flex-1">
+            <div className="flex min-h-14 flex-col items-center justify-center gap-1 text-xs font-medium text-neutral-300">
+              <div className="size-5 rounded bg-neutral-200/80" />
+              {label}
+            </div>
+          </li>
+        ))}
+      </ul>
+    </nav>
   );
 }
 
@@ -29,7 +52,11 @@ async function DeskTopBar() {
   );
 }
 
-/** Shell stays mounted; only TopBar + page bodies suspend independently. */
+/**
+ * Shell (top + bottom) stays put on tab switches.
+ * Only the main slot streams — no wrapping Suspense around children
+ * (route loading.tsx handles that once).
+ */
 export function DeskFrame({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex min-h-dvh flex-col bg-neutral-50">
@@ -37,13 +64,11 @@ export function DeskFrame({ children }: { children: React.ReactNode }) {
         <DeskTopBar />
       </Suspense>
       <main className="mx-auto flex w-full max-w-lg flex-1 flex-col px-4 pb-[calc(6rem+env(safe-area-inset-bottom))] pt-4 md:max-w-5xl lg:max-w-7xl">
-        <Suspense fallback={<PageSkeleton />}>{children}</Suspense>
+        <ViewTransition enter="auto" exit="auto">
+          {children}
+        </ViewTransition>
       </main>
-      <Suspense
-        fallback={
-          <nav className="h-[calc(3.5rem+env(safe-area-inset-bottom))] border-t border-neutral-200 bg-white print:hidden" />
-        }
-      >
+      <Suspense fallback={<BottomNavFallback />}>
         <BottomNav variant="desk" />
       </Suspense>
     </div>

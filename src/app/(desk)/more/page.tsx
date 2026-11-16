@@ -1,5 +1,3 @@
-import { Suspense } from "react";
-import { PageSkeleton } from "@/components/ui/skeleton";
 import Link from "next/link";
 import {
   Car,
@@ -22,15 +20,7 @@ import { requireDeskSession } from "@/lib/auth/get-membership";
 
 type MoreLink = { href: string; label: string; icon: LucideIcon };
 
-export default function MorePage() {
-  return (
-    <Suspense fallback={<PageSkeleton />}>
-      <MoreBody />
-    </Suspense>
-  );
-}
-
-async function MoreBody() {
+export default async function MorePage() {
   const ctx = await requireDeskSession();
   const isOwner = ctx.membership.role === "owner";
 

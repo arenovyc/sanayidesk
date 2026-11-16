@@ -28,7 +28,7 @@ export default function JobPrintPage({
   params: Promise<{ id: string }>;
 }) {
   return (
-    <Suspense fallback={<PageSkeleton />}>
+    <Suspense fallback={null}>
       <JobPrintBody params={params} />
     </Suspense>
   );

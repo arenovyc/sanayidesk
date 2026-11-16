@@ -1,5 +1,3 @@
-import { Suspense } from "react";
-import { PageSkeleton } from "@/components/ui/skeleton";
 import Link from "next/link";
 import { AcceptForm } from "@/components/desk/accept-form";
 import { ClearRemindButton } from "@/components/desk/clear-remind-button";
@@ -28,19 +26,7 @@ import {
   TODAY_BUCKETS,
 } from "@/lib/work-orders/status";
 
-export default function TodayPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ q?: string }>;
-}) {
-  return (
-    <Suspense fallback={<PageSkeleton />}>
-      <TodayBody searchParams={searchParams} />
-    </Suspense>
-  );
-}
-
-async function TodayBody({
+export default async function TodayPage({
   searchParams,
 }: {
   searchParams: Promise<{ q?: string }>;

@@ -10,7 +10,7 @@ export default function NewJobPage({
   searchParams: Promise<{ plate?: string }>;
 }) {
   return (
-    <Suspense fallback={<PageSkeleton />}>
+    <Suspense fallback={null}>
       <NewJobBody searchParams={searchParams} />
     </Suspense>
   );

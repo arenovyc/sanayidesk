@@ -10,7 +10,7 @@ import { listRecentMessageEvents } from "@/lib/data/message-events";
 
 export default function MessagesPage() {
   return (
-    <Suspense fallback={<PageSkeleton />}>
+    <Suspense fallback={null}>
       <MessagesBody />
     </Suspense>
   );

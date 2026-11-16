@@ -13,7 +13,7 @@ export default function CustomerDetailPage({
   params: Promise<{ id: string }>;
 }) {
   return (
-    <Suspense fallback={<PageSkeleton />}>
+    <Suspense fallback={null}>
       <CustomerBody params={params} />
     </Suspense>
   );

@@ -10,7 +10,7 @@ import { listAppointments } from "@/lib/data/appointments";
 
 export default function AppointmentsPage() {
   return (
-    <Suspense fallback={<PageSkeleton />}>
+    <Suspense fallback={null}>
       <AppointmentsBody />
     </Suspense>
   );

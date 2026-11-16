@@ -8,7 +8,7 @@ import { requireDeskSession } from "@/lib/auth/get-membership";
 
 export default function SettingsPage() {
   return (
-    <Suspense fallback={<PageSkeleton />}>
+    <Suspense fallback={null}>
       <SettingsBody />
     </Suspense>
   );

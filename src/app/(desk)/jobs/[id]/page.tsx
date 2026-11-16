@@ -16,7 +16,7 @@ import { JobStatusForm } from "@/components/desk/job-status-form";
 import { QuoteApprovalButton } from "@/components/desk/quote-approval-button";
 import { WhatsAppShareButton } from "@/components/desk/whatsapp-share-button";
 import { Button } from "@/components/ui/button";
-import { PageSkeleton } from "@/components/ui/skeleton";
+import { RouteLoading } from "@/components/ui/skeleton";
 import { SchemaHintBanner } from "@/components/ui/schema-hint-banner";
 import { requireDeskSession } from "@/lib/auth/get-membership";
 import {
@@ -32,21 +32,7 @@ import { getWorkOrderDetail } from "@/lib/data/work-orders";
 import { remainingDue } from "@/lib/work-orders/money";
 import { STATUS_LABELS } from "@/lib/work-orders/status";
 
-export default function JobDetailPage({
-  params,
-  searchParams,
-}: {
-  params: Promise<{ id: string }>;
-  searchParams: Promise<{ existing?: string }>;
-}) {
-  return (
-    <Suspense fallback={<PageSkeleton />}>
-      <JobDetailBody params={params} searchParams={searchParams} />
-    </Suspense>
-  );
-}
-
-async function JobDetailBody({
+export default async function JobDetailPage({
   params,
   searchParams,
 }: {
@@ -263,7 +249,7 @@ async function JobDetailBody({
   );
 
   const dis = (
-    <Suspense fallback={<PageSkeleton />}>
+    <Suspense fallback={<RouteLoading />}>
       <JobDisTab
         workspaceId={ctx.workspace.id}
         workOrderId={job.id}

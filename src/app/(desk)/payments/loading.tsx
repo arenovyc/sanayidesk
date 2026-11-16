@@ -1,5 +1,5 @@
-import { PageSkeleton } from "@/components/ui/skeleton";
+import { RouteLoading } from "@/components/ui/skeleton";
 
 export default function PaymentsLoading() {
-  return <PageSkeleton />;
+  return <RouteLoading />;
 }

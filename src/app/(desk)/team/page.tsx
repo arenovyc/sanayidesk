@@ -9,7 +9,7 @@ import { hasServiceRoleKey } from "@/lib/supabase/env";
 
 export default function TeamPage() {
   return (
-    <Suspense fallback={<PageSkeleton />}>
+    <Suspense fallback={null}>
       <TeamBody />
     </Suspense>
   );

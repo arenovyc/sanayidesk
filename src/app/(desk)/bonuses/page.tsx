@@ -10,7 +10,7 @@ import { formatMoney } from "@/lib/format/money";
 
 export default function BonusesPage() {
   return (
-    <Suspense fallback={<PageSkeleton />}>
+    <Suspense fallback={null}>
       <BonusesBody />
     </Suspense>
   );

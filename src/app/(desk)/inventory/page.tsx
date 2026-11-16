@@ -13,7 +13,7 @@ import { listNetworkShops } from "@/lib/data/network";
 
 export default function InventoryPage() {
   return (
-    <Suspense fallback={<PageSkeleton />}>
+    <Suspense fallback={null}>
       <InventoryBody />
     </Suspense>
   );

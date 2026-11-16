@@ -10,7 +10,7 @@ import { listNetworkShops } from "@/lib/data/network";
 
 export default function NetworkPage() {
   return (
-    <Suspense fallback={<PageSkeleton />}>
+    <Suspense fallback={null}>
       <NetworkBody />
     </Suspense>
   );

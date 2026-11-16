@@ -14,7 +14,7 @@ export default function VehicleDetailPage({
   params: Promise<{ id: string }>;
 }) {
   return (
-    <Suspense fallback={<PageSkeleton />}>
+    <Suspense fallback={null}>
       <VehicleBody params={params} />
     </Suspense>
   );

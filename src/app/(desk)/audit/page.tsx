@@ -31,7 +31,7 @@ export default function AuditPage({
   searchParams: Promise<{ action?: string }>;
 }) {
   return (
-    <Suspense fallback={<PageSkeleton />}>
+    <Suspense fallback={null}>
       <AuditBody searchParams={searchParams} />
     </Suspense>
   );

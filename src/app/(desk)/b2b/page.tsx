@@ -13,7 +13,7 @@ import { listDirectory } from "@/lib/data/ops";
 
 export default function B2bPage() {
   return (
-    <Suspense fallback={<PageSkeleton />}>
+    <Suspense fallback={null}>
       <B2bBody />
     </Suspense>
   );

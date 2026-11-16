@@ -7,7 +7,7 @@ import { STATUS_LABELS } from "@/lib/work-orders/status";
 
 export default function VehiclesPage() {
   return (
-    <Suspense fallback={<PageSkeleton />}>
+    <Suspense fallback={null}>
       <VehiclesBody />
     </Suspense>
   );

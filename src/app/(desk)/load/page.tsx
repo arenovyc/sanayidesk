@@ -7,7 +7,7 @@ import { listMechanicLoad } from "@/lib/data/assignments";
 
 export default function LoadPage() {
   return (
-    <Suspense fallback={<PageSkeleton />}>
+    <Suspense fallback={null}>
       <LoadBody />
     </Suspense>
   );

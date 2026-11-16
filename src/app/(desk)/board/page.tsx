@@ -1,5 +1,3 @@
-import { Suspense } from "react";
-import { PageSkeleton } from "@/components/ui/skeleton";
 import Link from "next/link";
 import { BoardColumns } from "@/components/desk/board-columns";
 import { JobSearch } from "@/components/desk/job-search";
@@ -14,24 +12,7 @@ import {
 import { boardColumnForStatus } from "@/lib/assignments/rules";
 import { isWorkOrderStatus, STATUS_LABELS } from "@/lib/work-orders/status";
 
-export default function BoardPage({
-  searchParams,
-}: {
-  searchParams: Promise<{
-    q?: string;
-    assignee?: string;
-    status?: string;
-    unassigned?: string;
-  }>;
-}) {
-  return (
-    <Suspense fallback={<PageSkeleton />}>
-      <BoardBody searchParams={searchParams} />
-    </Suspense>
-  );
-}
-
-async function BoardBody({
+export default async function BoardPage({
   searchParams,
 }: {
   searchParams: Promise<{
