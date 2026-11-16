@@ -28,7 +28,7 @@ export const getDeskNotificationCounts = cache(async (
 
   const { data, error } = await supabase
     .from("desk_notification_counts")
-    .select("b2b_pending, unassigned, ready, low_stock")
+    .select("b2b_pending, unassigned, ready, low_stock, approval_questions")
     .eq("workspace_id", workspaceId)
     .maybeSingle();
 
@@ -36,11 +36,11 @@ export const getDeskNotificationCounts = cache(async (
     if (isMissingRelation(error)) {
       return { counts: emptyNotificationCounts(), schemaMissing: true };
     }
-    // Pre-008 view without low_stock column
-    if ((error.message ?? "").toLowerCase().includes("low_stock")) {
+    const msg = (error.message ?? "").toLowerCase();
+    if (msg.includes("approval_questions")) {
       const legacy = await supabase
         .from("desk_notification_counts")
-        .select("b2b_pending, unassigned, ready")
+        .select("b2b_pending, unassigned, ready, low_stock")
         .eq("workspace_id", workspaceId)
         .maybeSingle();
       if (legacy.error) {
@@ -55,7 +55,10 @@ export const getDeskNotificationCounts = cache(async (
           b2bPending: Number(legacy.data?.b2b_pending ?? 0),
           unassigned: Number(legacy.data?.unassigned ?? 0),
           ready: Number(legacy.data?.ready ?? 0),
-          lowStock: 0,
+          lowStock: Number(
+            (legacy.data as { low_stock?: number } | null)?.low_stock ?? 0,
+          ),
+          approvalQuestions: 0,
         },
       };
     }
@@ -70,6 +73,10 @@ export const getDeskNotificationCounts = cache(async (
       ready: Number(data?.ready ?? 0),
       lowStock: Number(
         (data as { low_stock?: number } | null)?.low_stock ?? 0,
+      ),
+      approvalQuestions: Number(
+        (data as { approval_questions?: number } | null)?.approval_questions ??
+          0,
       ),
     },
   };

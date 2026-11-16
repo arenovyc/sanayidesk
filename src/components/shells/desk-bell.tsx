@@ -91,6 +91,18 @@ export function DeskBell({
                   </span>
                 </Link>
               </li>
+              <li>
+                <Link
+                  href="/board?status=waiting_approval"
+                  className="flex justify-between px-3 py-2.5 hover:bg-neutral-50"
+                  onClick={() => setOpen(false)}
+                >
+                  <span>Müşteri sorusu</span>
+                  <span className="tabular-nums text-neutral-500">
+                    {counts.approvalQuestions}
+                  </span>
+                </Link>
+              </li>
             </ul>
           )}
         </div>

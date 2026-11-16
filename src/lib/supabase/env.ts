@@ -12,6 +12,10 @@ export function getSiteUrl() {
   return "http://localhost:3000";
 }
 
+export function approvalPageUrl(token: string): string {
+  return `${getSiteUrl()}/onay/${token}`;
+}
+
 /** Yeni sb_publishable / sb_secret formatı — Legacy eyJ JWT tercih edilir */
 export function usesNewStyleSupabaseKeys() {
   const anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.trim() ?? "";

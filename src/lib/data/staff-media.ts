@@ -48,6 +48,7 @@ export async function listStaffJobMedia(
     contentType: row.content_type,
     byteSize: row.byte_size,
     createdAt: row.created_at,
+    tag: null,
   }));
 
   const urls: Record<string, string> = {};

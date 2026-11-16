@@ -5,11 +5,20 @@ export function waReadyVehicleMessage(input: {
   plate: string;
   displayNo?: string | null;
   shopPhone?: string | null;
+  nextServiceKm?: number | null;
+  nextServiceDateLabel?: string | null;
 }): string {
+  const nextLine =
+    input.nextServiceKm != null
+      ? `Bir sonraki bakım: ${input.nextServiceKm.toLocaleString("tr-TR")} km${
+          input.nextServiceDateLabel ? ` veya ${input.nextServiceDateLabel}` : ""
+        }`
+      : null;
   return [
     `${input.shopName}: aracınız hazır.`,
     `Plaka ${input.plate}`,
     input.displayNo ? `İş ${input.displayNo}` : null,
+    nextLine,
     input.shopPhone ? `Tel ${input.shopPhone}` : null,
   ]
     .filter(Boolean)
@@ -21,11 +30,15 @@ export function waQuoteSummaryMessage(input: {
   plate: string;
   quoteLabel: string;
   shopPhone?: string | null;
+  approvalUrl?: string | null;
 }): string {
   return [
     `${input.shopName}: teklif özeti`,
     `Plaka ${input.plate}`,
     input.quoteLabel,
+    input.approvalUrl
+      ? `Onay linki (giriş gerekmez):\n${input.approvalUrl}`
+      : null,
     input.shopPhone ? `Tel ${input.shopPhone}` : null,
   ]
     .filter(Boolean)

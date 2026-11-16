@@ -55,6 +55,19 @@ export const updateJobIntakeSchema = z.object({
     .refine((value) => value === "" || value.length >= 7, "Telefon en az 7 rakam olmalı"),
   complaint: z.string().trim().max(500).optional().default(""),
   makeModel: z.string().trim().max(80).optional().default(""),
+  entryKm: z
+    .union([z.number(), z.nan(), z.null()])
+    .optional()
+    .transform((value) => {
+      if (value == null || (typeof value === "number" && Number.isNaN(value))) {
+        return null;
+      }
+      return value;
+    })
+    .refine(
+      (value) => value == null || (Number.isInteger(value) && value >= 0),
+      "Giriş KM geçersiz",
+    ),
 });
 
 export function firstWorkOrderZodError(error: z.ZodError): string {

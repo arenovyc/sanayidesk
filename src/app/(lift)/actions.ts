@@ -141,12 +141,21 @@ export async function staffUploadMediaAction(
   const supabase = await createServerSupabase();
   if (!supabase) return { error: MISSING_SUPABASE_ENV };
 
+  const tagRaw = String(formData.get("tag") ?? "").trim();
+  const tag =
+    tagRaw === "entry_damage" ||
+    tagRaw === "old_part" ||
+    tagRaw === "new_part"
+      ? tagRaw
+      : null;
+
   const { error } = await supabase.rpc("staff_register_media", {
     _token: staff.token,
     _work_order_id: workOrderId,
     _storage_path: path,
     _content_type: contentType,
     _byte_size: file.size,
+    _tag: tag,
   });
   if (error) {
     const text = error.message.toLowerCase();

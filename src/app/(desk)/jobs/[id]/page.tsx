@@ -1,6 +1,7 @@
 import { Suspense } from "react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { clearApprovalQuestionAction } from "@/app/(desk)/jobs/actions";
 import { JobAssignPanel } from "@/components/desk/job-assign-panel";
 import { JobDetailTabs } from "@/components/desk/job-detail-tabs";
 import { JobDisTab } from "@/components/desk/job-dis-tab";
@@ -14,6 +15,7 @@ import {
 import { JobIntakeCompleteForm } from "@/components/desk/job-intake-complete-form";
 import { JobStatusForm } from "@/components/desk/job-status-form";
 import { QuoteApprovalButton } from "@/components/desk/quote-approval-button";
+import { VehicleCheckupPanel } from "@/components/desk/vehicle-checkup";
 import { WhatsAppShareButton } from "@/components/desk/whatsapp-share-button";
 import { Button } from "@/components/ui/button";
 import { RouteLoading } from "@/components/ui/skeleton";
@@ -27,10 +29,22 @@ import { listAssignmentHistory } from "@/lib/data/assignments";
 import { listInventoryItems } from "@/lib/data/inventory";
 import { signedMediaUrls } from "@/lib/data/media-urls";
 import { listDirectory, listTeam } from "@/lib/data/ops";
+import { formatIstanbulDate } from "@/lib/format/date";
 import { formatMoney } from "@/lib/format/money";
 import { getWorkOrderDetail } from "@/lib/data/work-orders";
 import { remainingDue } from "@/lib/work-orders/money";
 import { STATUS_LABELS } from "@/lib/work-orders/status";
+
+function ClearApprovalQuestionButton({ id }: { id: string }) {
+  return (
+    <form action={clearApprovalQuestionAction}>
+      <input type="hidden" name="id" value={id} />
+      <Button type="submit" size="sm" variant="outline">
+        Okundu
+      </Button>
+    </form>
+  );
+}
 
 export default async function JobDetailPage({
   params,
@@ -65,16 +79,27 @@ export default async function JobDetailPage({
   const remaining = remainingDue(job.due, job.paid);
   const itemsTotal = job.items.reduce((sum, item) => sum + item.amount, 0);
   const hasItems = job.items.length > 0;
+  const nextServiceKm =
+    job.nextServiceKm ??
+    (job.entryKm != null ? job.entryKm + 10000 : null);
+  const nextServiceDateLabel = (() => {
+    const d = new Date();
+    d.setMonth(d.getMonth() + 10);
+    return formatIstanbulDate(d);
+  })();
   const readyPreview = waReadyVehicleMessage({
     shopName: ctx.workspace.name,
     plate: job.plate,
     displayNo: job.displayNo,
     shopPhone: ctx.workspace.settings.phone,
+    nextServiceKm,
+    nextServiceDateLabel,
   });
+  const quoteLabel = formatMoney(hasItems ? itemsTotal : 0);
   const quotePreview = waQuoteSummaryMessage({
     shopName: ctx.workspace.name,
     plate: job.plate,
-    quoteLabel: formatMoney(hasItems ? itemsTotal : 0),
+    quoteLabel,
     shopPhone: ctx.workspace.settings.phone,
   });
   const needsIntakeComplete =
@@ -99,6 +124,9 @@ export default async function JobDetailPage({
               <span className="font-mono text-neutral-500">{job.displayNo}</span>
             ) : null}
             {job.makeModel ? <span>{job.makeModel}</span> : null}
+            {job.entryKm != null ? (
+              <span>{job.entryKm.toLocaleString("tr-TR")} km</span>
+            ) : null}
             <span className="rounded-full bg-neutral-200/80 px-2 py-0.5 text-xs font-medium text-neutral-800">
               {STATUS_LABELS[job.status]}
             </span>
@@ -126,6 +154,20 @@ export default async function JobDetailPage({
     <>
       <SchemaHintBanner missing={Boolean(job.opsSchemaMissing)} />
 
+      {job.approvalQuestionAt && job.customerApprovalNote ? (
+        <div className="flex flex-col gap-2 rounded-2xl border border-amber-300 bg-amber-50 p-4 sm:flex-row sm:items-start sm:justify-between">
+          <div>
+            <p className="text-sm font-medium text-amber-950">
+              Müşteri soru sordu
+            </p>
+            <p className="mt-1 text-sm text-amber-900">
+              {job.customerApprovalNote}
+            </p>
+          </div>
+          <ClearApprovalQuestionButton id={job.id} />
+        </div>
+      ) : null}
+
       {needsIntakeComplete ? (
         <JobIntakeCompleteForm
           workOrderId={job.id}
@@ -133,6 +175,7 @@ export default async function JobDetailPage({
           phone={job.customerPhone ?? ""}
           complaint={job.complaint}
           makeModel={job.makeModel ?? ""}
+          entryKm={job.entryKm != null ? String(job.entryKm) : ""}
         />
       ) : (
         <dl className="rounded-2xl border border-neutral-200 bg-white px-4 py-3 text-sm">
@@ -151,6 +194,12 @@ export default async function JobDetailPage({
               )}
             </dd>
           </div>
+          {job.entryKm != null ? (
+            <div className="flex justify-between gap-3 py-1.5">
+              <dt className="text-neutral-500">Giriş KM</dt>
+              <dd>{job.entryKm.toLocaleString("tr-TR")}</dd>
+            </div>
+          ) : null}
           {job.complaint ? (
             <div className="flex justify-between gap-3 py-1.5">
               <dt className="text-neutral-500">Şikayet</dt>
@@ -159,6 +208,11 @@ export default async function JobDetailPage({
           ) : null}
         </dl>
       )}
+
+      <VehicleCheckupPanel
+        workOrderId={job.id}
+        checkup={job.vehicleCheckup}
+      />
 
       <JobAssignPanel
         workOrderId={job.id}
@@ -214,8 +268,8 @@ export default async function JobDetailPage({
 
       <div className="flex flex-col gap-2 rounded-2xl border border-neutral-200 bg-white p-4">
         <p className="text-sm text-neutral-600">
-          Fiyat onayı — durum &quot;Onay Bekliyor&quot; olur, WhatsApp açılır.
-          Tutar eklenen kalemlerin toplamıdır.
+          Fiyat onayı — durum &quot;Onay Bekliyor&quot; olur, WhatsApp + onay
+          linki açılır. Tutar kalem toplamıdır.
         </p>
         {!hasItems ? (
           <p className="text-sm text-amber-800">
@@ -226,6 +280,10 @@ export default async function JobDetailPage({
           workOrderId={job.id}
           preview={quotePreview}
           phone={job.customerPhone}
+          shopName={ctx.workspace.name}
+          plate={job.plate}
+          quoteLabel={quoteLabel}
+          shopPhone={ctx.workspace.settings.phone}
           disabled={
             !hasItems ||
             job.status === "delivered" ||

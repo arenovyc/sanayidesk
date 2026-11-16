@@ -69,6 +69,32 @@ export async function addWorkOrderItemAction(
   return { error: null };
 }
 
+export async function addWorkOrderItemsBulkAction(
+  workOrderId: string,
+  lines: { kind: string; description: string; amount: number }[],
+): Promise<MoneyActionState> {
+  const ctx = await requireDeskSession();
+  if (!workOrderId || lines.length === 0) {
+    return { error: "Kalem gerekli" };
+  }
+
+  const supabase = await createServerSupabase();
+  if (!supabase) return { error: MISSING_SUPABASE_ENV };
+
+  const { error } = await supabase.from("work_order_items").insert(
+    lines.map((line) => ({
+      workspace_id: ctx.workspace.id,
+      work_order_id: workOrderId,
+      kind: line.kind,
+      description: line.description,
+      amount: line.amount,
+    })),
+  );
+  if (error) return { error: mapMoneyError(error.message) };
+  softRefreshJob(workOrderId);
+  return { error: null };
+}
+
 export async function addPaymentAction(
   _prev: MoneyActionState,
   formData: FormData,
@@ -213,6 +239,14 @@ export async function uploadJobMediaAction(
     return { error: "Fotoğraf yüklenemedi. Bağlantıyı kontrol edip tekrar dene." };
   }
 
+  const tagRaw = String(formData.get("tag") ?? "").trim();
+  const tag =
+    tagRaw === "entry_damage" ||
+    tagRaw === "old_part" ||
+    tagRaw === "new_part"
+      ? tagRaw
+      : null;
+
   const { error } = await supabase.from("media").insert({
     workspace_id: ctx.workspace.id,
     work_order_id: parsed.data.workOrderId,
@@ -220,6 +254,7 @@ export async function uploadJobMediaAction(
     content_type: contentType,
     byte_size: file.size,
     created_by_user_id: ctx.appUser.id,
+    tag,
   });
   if (error) {
     if (isMissingRelationLike(error.message)) {

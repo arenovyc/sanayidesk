@@ -1,10 +1,11 @@
 "use client";
 
-import { useActionState, useState } from "react";
+import { useActionState, useState, useTransition } from "react";
 import {
   addPartRequestAction,
   addPaymentAction,
   addWorkOrderItemAction,
+  addWorkOrderItemsBulkAction,
   voidPaymentAction,
   type MoneyActionState,
 } from "@/app/(desk)/jobs/money-actions";
@@ -15,6 +16,7 @@ import { Label } from "@/components/ui/label";
 import type { DirectoryContact } from "@/lib/data/ops";
 import { formatMoney } from "@/lib/format/money";
 import { waPartsVendorMessage } from "@/lib/format/wa-templates";
+import { JOB_PACKAGES } from "@/lib/work-orders/packages";
 import { remainingDue } from "@/lib/work-orders/money";
 import type {
   PartRequestRow,
@@ -42,6 +44,8 @@ export function JobItemsSection({
     addWorkOrderItemAction,
     initial,
   );
+  const [pkgPending, startPkg] = useTransition();
+  const [pkgError, setPkgError] = useState<string | null>(null);
 
   const itemsTotal = items.reduce((sum, item) => sum + item.amount, 0);
 
@@ -72,6 +76,29 @@ export function JobItemsSection({
           ))}
         </ul>
       )}
+      <div className="flex flex-wrap gap-1.5">
+        {JOB_PACKAGES.map((pkg) => (
+          <button
+            key={pkg.id}
+            type="button"
+            disabled={pkgPending}
+            className="rounded-full border border-neutral-300 bg-white px-2.5 py-1 text-xs font-medium text-neutral-800 disabled:opacity-50"
+            onClick={() => {
+              setPkgError(null);
+              startPkg(async () => {
+                const result = await addWorkOrderItemsBulkAction(
+                  workOrderId,
+                  pkg.lines,
+                );
+                if (result.error) setPkgError(result.error);
+              });
+            }}
+          >
+            {pkg.label}
+          </button>
+        ))}
+      </div>
+      {pkgError ? <p className="text-sm text-red-700">{pkgError}</p> : null}
       <form
         action={itemAction}
         className="grid gap-3 rounded-2xl border-2 border-neutral-300 bg-white p-4 shadow-sm"

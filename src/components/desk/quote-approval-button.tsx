@@ -3,21 +3,29 @@
 import { useState, useTransition } from "react";
 import { shareQuoteSetWaitingApprovalAction } from "@/app/(desk)/jobs/actions";
 import { waShareHref } from "@/lib/format/wa-phone";
+import { waQuoteSummaryMessage } from "@/lib/format/wa-templates";
 
 export function QuoteApprovalButton({
   workOrderId,
   preview,
   phone,
   disabled = false,
+  shopName,
+  plate,
+  quoteLabel,
+  shopPhone,
 }: {
   workOrderId: string;
   preview: string;
   phone?: string | null;
   disabled?: boolean;
+  shopName?: string;
+  plate?: string;
+  quoteLabel?: string;
+  shopPhone?: string | null;
 }) {
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
-  const href = waShareHref(preview, phone);
 
   return (
     <div className="flex flex-col gap-2">
@@ -39,7 +47,19 @@ export function QuoteApprovalButton({
               setError(result.error);
               return;
             }
-            window.open(href, "_blank", "noreferrer");
+            const fullPreview =
+              shopName && plate && quoteLabel
+                ? waQuoteSummaryMessage({
+                    shopName,
+                    plate,
+                    quoteLabel,
+                    shopPhone,
+                    approvalUrl: result.approvalUrl,
+                  })
+                : result.approvalUrl && !preview.includes(result.approvalUrl)
+                  ? `${preview}\n\nOnay linki (giriş gerekmez):\n${result.approvalUrl}`
+                  : preview;
+            window.open(waShareHref(fullPreview, phone), "_blank", "noreferrer");
           });
         }}
       >

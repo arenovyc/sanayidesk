@@ -4,7 +4,10 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireDeskSession } from "@/lib/auth/get-membership";
 import { messagePreviewPayload } from "@/lib/media/hash-preview";
-import { MISSING_SUPABASE_ENV } from "@/lib/supabase/env";
+import {
+  approvalPageUrl,
+  MISSING_SUPABASE_ENV,
+} from "@/lib/supabase/env";
 import { createServerSupabase } from "@/lib/supabase/server";
 import {
   acceptWorkOrderSchema,
@@ -17,6 +20,7 @@ import {
 
 export type JobActionState = {
   error: string | null;
+  approvalUrl?: string | null;
 };
 
 function mapJobError(message: string): string {
@@ -147,15 +151,37 @@ export async function shareQuoteSetWaitingApprovalAction(
     }
   }
 
-  if (parsed.data.preview) {
+  const { data: token, error: tokenError } = await supabase.rpc(
+    "desk_ensure_approval_token",
+    { _work_order_id: parsed.data.id },
+  );
+  if (tokenError) {
+    const msg = tokenError.message.toLowerCase();
+    if (msg.includes("does not exist") || msg.includes("schema cache")) {
+      return { error: "Şema eksik. npm run db:push (019)." };
+    }
+    return { error: mapJobError(tokenError.message) };
+  }
+
+  const approvalUrl =
+    typeof token === "string" && token
+      ? approvalPageUrl(token)
+      : null;
+
+  const previewWithLink =
+    approvalUrl && parsed.data.preview && !parsed.data.preview.includes(approvalUrl)
+      ? `${parsed.data.preview}\n\nOnay linki (giriş gerekmez):\n${approvalUrl}`
+      : parsed.data.preview;
+
+  if (previewWithLink) {
     await supabase.rpc("desk_log_message_event", {
       _work_order_id: parsed.data.id,
-      _payload: messagePreviewPayload(parsed.data.preview),
+      _payload: messagePreviewPayload(previewWithLink),
     });
   }
 
   revalidatePath(`/jobs/${parsed.data.id}`);
-  return { error: null };
+  return { error: null, approvalUrl };
 }
 
 export async function clearWorkOrderRemindAction(
@@ -187,12 +213,14 @@ export async function updateJobIntakeAction(
   formData: FormData,
 ): Promise<JobActionState> {
   await requireDeskSession();
+  const entryKmRaw = String(formData.get("entryKm") ?? "").trim();
   const parsed = updateJobIntakeSchema.safeParse({
     workOrderId: String(formData.get("workOrderId") ?? ""),
     fullName: String(formData.get("fullName") ?? ""),
     phone: String(formData.get("phone") ?? ""),
     complaint: String(formData.get("complaint") ?? ""),
     makeModel: String(formData.get("makeModel") ?? ""),
+    entryKm: entryKmRaw === "" ? null : Number(entryKmRaw),
   });
   if (!parsed.success) {
     return { error: firstWorkOrderZodError(parsed.error) };
@@ -207,15 +235,32 @@ export async function updateJobIntakeAction(
     _phone: parsed.data.phone,
     _complaint: parsed.data.complaint,
     _make_model: parsed.data.makeModel,
+    _entry_km: parsed.data.entryKm,
   });
   if (error) {
     const msg = error.message.toLowerCase();
     if (msg.includes("does not exist") || msg.includes("schema cache")) {
-      return { error: "Şema eksik. npm run db:push (012)." };
+      return { error: "Şema eksik. npm run db:push (012/019)." };
     }
     return { error: mapJobError(error.message) };
   }
 
   revalidatePath(`/jobs/${parsed.data.workOrderId}`);
   return { error: null };
+}
+
+export async function clearApprovalQuestionAction(
+  formData: FormData,
+): Promise<void> {
+  await requireDeskSession();
+  const id = String(formData.get("id") ?? "");
+  if (!id) return;
+
+  const supabase = await createServerSupabase();
+  if (!supabase) return;
+
+  await supabase.rpc("desk_clear_approval_question", {
+    _work_order_id: id,
+  });
+  revalidatePath(`/jobs/${id}`);
 }

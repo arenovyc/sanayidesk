@@ -18,6 +18,7 @@ import {
 } from "@/lib/work-orders/status";
 import { sumPaidAmount } from "@/lib/work-orders/money";
 import type {
+  VehicleCheckup,
   BoardCard,
   JobsBoard,
   MediaRow,
@@ -423,7 +424,7 @@ export async function getWorkOrderDetail(
   const supabase = await createServerSupabase();
   if (!supabase) return null;
 
-  const [itemsRes, paymentsRes, partsRes, mediaRes] = await Promise.all([
+  const [itemsRes, paymentsRes, partsRes, mediaRes, extraRes] = await Promise.all([
     supabase
       .from("work_order_items")
       .select("id, kind, description, amount")
@@ -443,9 +444,16 @@ export async function getWorkOrderDetail(
       .order("created_at", { ascending: false }),
     supabase
       .from("media")
-      .select("id, storage_path, content_type, byte_size, created_at")
+      .select("id, storage_path, content_type, byte_size, created_at, tag")
       .eq("work_order_id", id)
       .order("created_at", { ascending: false }),
+    supabase
+      .from("work_orders")
+      .select(
+        "quote_amount, entry_km, next_service_km, public_token, approved_at, customer_approval_note, approval_question_at, vehicle_checkup",
+      )
+      .eq("id", id)
+      .maybeSingle(),
   ]);
 
   const paymentTableMissing =
@@ -467,6 +475,13 @@ export async function getWorkOrderDetail(
       due: 0,
       paid: 0,
       quoteAmount: null,
+      entryKm: null,
+      nextServiceKm: null,
+      publicToken: null,
+      approvedAt: null,
+      customerApprovalNote: null,
+      approvalQuestionAt: null,
+      vehicleCheckup: {},
       opsSchemaMissing: true,
       faz4SchemaMissing: true,
     };
@@ -474,8 +489,28 @@ export async function getWorkOrderDetail(
   if (itemsRes.error) throw itemsRes.error;
   if (partsRes.error) throw partsRes.error;
 
-  const faz4SchemaMissing = isMissingOpsRelation(mediaRes.error);
-  if (mediaRes.error && !faz4SchemaMissing) throw mediaRes.error;
+  type MediaDbRow = {
+    id: string;
+    storage_path: string;
+    content_type: string;
+    byte_size: number;
+    created_at: string;
+    tag?: string | null;
+  };
+  let mediaRows: MediaDbRow[] = (mediaRes.data ?? []) as MediaDbRow[];
+  let mediaError = mediaRes.error;
+  if (mediaRes.error && isMissingColumn(mediaRes.error, "tag")) {
+    const legacyMedia = await supabase
+      .from("media")
+      .select("id, storage_path, content_type, byte_size, created_at")
+      .eq("work_order_id", id)
+      .order("created_at", { ascending: false });
+    mediaRows = (legacyMedia.data ?? []) as MediaDbRow[];
+    mediaError = legacyMedia.error;
+  }
+
+  const faz4SchemaMissing = isMissingOpsRelation(mediaError);
+  if (mediaError && !faz4SchemaMissing) throw mediaError;
 
   const items: WorkOrderItemRow[] = (itemsRes.data ?? []).map((row) => ({
     id: row.id,
@@ -526,28 +561,81 @@ export async function getWorkOrderDetail(
   }));
   const media: MediaRow[] = faz4SchemaMissing
     ? []
-    : (mediaRes.data ?? []).map((row) => ({
-        id: row.id,
-        storagePath: row.storage_path,
-        contentType: row.content_type,
-        byteSize: row.byte_size,
-        createdAt: row.created_at,
-      }));
+    : mediaRows.map((tagged) => {
+        const tag =
+          tagged.tag === "entry_damage" ||
+          tagged.tag === "old_part" ||
+          tagged.tag === "new_part"
+            ? tagged.tag
+            : null;
+        return {
+          id: tagged.id,
+          storagePath: tagged.storage_path,
+          contentType: tagged.content_type,
+          byteSize: tagged.byte_size,
+          createdAt: tagged.created_at,
+          tag,
+        };
+      });
 
   const due = items.reduce((sum, item) => sum + item.amount, 0);
   const paid = sumPaidAmount(payments);
 
-  let quoteAmount: number | null = null;
-  const quoteRes = await supabase
-    .from("work_orders")
-    .select("quote_amount")
-    .eq("id", id)
-    .maybeSingle();
-  if (!quoteRes.error && quoteRes.data) {
-    const raw = (quoteRes.data as { quote_amount?: number | string | null })
-      .quote_amount;
-    quoteAmount = raw == null ? null : Number(raw);
-    if (!Number.isFinite(quoteAmount)) quoteAmount = null;
+  type Extra = {
+    quote_amount?: number | string | null;
+    entry_km?: number | null;
+    next_service_km?: number | null;
+    public_token?: string | null;
+    approved_at?: string | null;
+    customer_approval_note?: string | null;
+    approval_question_at?: string | null;
+    vehicle_checkup?: Record<string, string> | null;
+  };
+
+  let extra: Extra = {};
+  if (extraRes.error && isMissingColumn(extraRes.error, "entry_km")) {
+    const quoteOnly = await supabase
+      .from("work_orders")
+      .select("quote_amount")
+      .eq("id", id)
+      .maybeSingle();
+    if (!quoteOnly.error && quoteOnly.data) {
+      extra = quoteOnly.data as Extra;
+    }
+  } else if (extraRes.error) {
+    throw extraRes.error;
+  } else {
+    extra = (extraRes.data ?? {}) as Extra;
+  }
+
+  let quoteAmount: number | null =
+    extra.quote_amount == null ? null : Number(extra.quote_amount);
+  if (!Number.isFinite(quoteAmount)) quoteAmount = null;
+
+  const entryKm =
+    extra.entry_km == null || !Number.isFinite(Number(extra.entry_km))
+      ? null
+      : Number(extra.entry_km);
+  const nextServiceKm =
+    extra.next_service_km == null ||
+    !Number.isFinite(Number(extra.next_service_km))
+      ? null
+      : Number(extra.next_service_km);
+
+  const vehicleCheckup: VehicleCheckup = {};
+  const rawCheck = extra.vehicle_checkup ?? {};
+  for (const [key, value] of Object.entries(rawCheck)) {
+    if (
+      (key === "brake_pads" ||
+        key === "tires" ||
+        key === "battery" ||
+        key === "wipers" ||
+        key === "fluids" ||
+        key === "belts") &&
+      (value === "ok" || value === "soon" || value === "urgent")
+    ) {
+      vehicleCheckup[key] = value;
+    }
   }
 
   return {
@@ -559,6 +647,13 @@ export async function getWorkOrderDetail(
     due,
     paid,
     quoteAmount,
+    entryKm,
+    nextServiceKm,
+    publicToken: extra.public_token ?? null,
+    approvedAt: extra.approved_at ?? null,
+    customerApprovalNote: extra.customer_approval_note ?? null,
+    approvalQuestionAt: extra.approval_question_at ?? null,
+    vehicleCheckup,
     faz4SchemaMissing: faz4SchemaMissing || undefined,
   };
 }

@@ -78,17 +78,21 @@ export function InventoryPanel({
                   </span>
                   <span
                     className={
-                      isLowStock(item.qty, item.minQty)
+                      isLowStock(item.availableQty, item.minQty)
                         ? "font-semibold text-amber-800"
                         : "tabular-nums"
                     }
                   >
-                    {item.qty}
+                    {item.availableQty}
                   </span>
                 </div>
                 <p className="mt-1 text-xs text-neutral-500">
-                  Min {item.minQty} · maliyet {formatMoney(item.unitCost)}
-                  {isLowStock(item.qty, item.minQty) ? " · düşük stok" : ""}
+                  Rafta: {item.qty} · Ayrılan: {item.reservedQty} ·
+                  Kullanılabilir: {item.availableQty} · Min {item.minQty} ·{" "}
+                  {formatMoney(item.unitCost)}
+                  {isLowStock(item.availableQty, item.minQty)
+                    ? " · düşük stok"
+                    : ""}
                 </p>
               </li>
             ))}
@@ -156,7 +160,8 @@ export function InventoryPanel({
         >
           {items.map((item) => (
             <option key={item.id} value={item.id}>
-              {item.name} — Stok: {item.qty} adet
+              {item.name} — Rafta: {item.qty} · Ayrılan: {item.reservedQty} ·
+              Kullanılabilir: {item.availableQty}
             </option>
           ))}
         </select>
@@ -202,7 +207,8 @@ export function InventoryPanel({
         >
           {items.map((item) => (
             <option key={item.id} value={item.id}>
-              {item.name} — Stok: {item.qty} adet
+              {item.name} — Rafta: {item.qty} · Ayrılan: {item.reservedQty} ·
+              Kullanılabilir: {item.availableQty}
             </option>
           ))}
         </select>
@@ -403,7 +409,8 @@ export function JobInventoryIssueForm({
       >
         {items.map((item) => (
           <option key={item.id} value={item.id}>
-            {item.name} — Stok: {item.qty} adet
+            {item.name} — Rafta: {item.qty} · Ayrılan: {item.reservedQty} ·
+            Kullanılabilir: {item.availableQty}
           </option>
         ))}
       </select>

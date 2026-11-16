@@ -6,6 +6,8 @@ export type InventoryItem = {
   sku: string | null;
   name: string;
   qty: number;
+  reservedQty: number;
+  availableQty: number;
   unitCost: number;
   minQty: number;
   updatedAt: string;
@@ -14,7 +16,7 @@ export type InventoryItem = {
 export type InventoryMovement = {
   id: string;
   itemId: string;
-  kind: "in" | "out" | "adjust";
+  kind: "in" | "out" | "adjust" | "reserve" | "release";
   qty: number;
   workOrderId: string | null;
   note: string;
@@ -50,17 +52,42 @@ export async function listInventoryItems(
     throw error;
   }
 
+  const baseRows = (data ?? []).map((row) => ({
+    id: row.id,
+    sku: row.sku as string | null,
+    name: row.name as string,
+    qty: Number(row.qty),
+    unitCost: Number(row.unit_cost),
+    minQty: Number(row.min_qty),
+    updatedAt: row.updated_at as string,
+  }));
+
+  const reserved = await Promise.all(
+    baseRows.map(async (row) => {
+      const { data: reservedQty, error: reservedError } = await supabase.rpc(
+        "inventory_reserved_qty",
+        { _item_id: row.id },
+      );
+      if (reservedError) {
+        if (isMissing(reservedError)) return 0;
+        return 0;
+      }
+      return Number(reservedQty ?? 0);
+    }),
+  );
+
   return {
     schemaMissing: false,
-    rows: (data ?? []).map((row) => ({
-      id: row.id,
-      sku: row.sku,
-      name: row.name,
-      qty: Number(row.qty),
-      unitCost: Number(row.unit_cost),
-      minQty: Number(row.min_qty),
-      updatedAt: row.updated_at,
-    })),
+    rows: baseRows.map((row, index) => {
+      const reservedQty = Number.isFinite(reserved[index])
+        ? Math.max(0, reserved[index]!)
+        : 0;
+      return {
+        ...row,
+        reservedQty,
+        availableQty: Math.max(0, row.qty - reservedQty),
+      };
+    }),
   };
 }
 

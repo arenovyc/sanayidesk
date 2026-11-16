@@ -1,12 +1,14 @@
 "use client";
 
-import { useActionState, useRef } from "react";
+import { useActionState, useRef, useState } from "react";
 import {
   uploadJobMediaAction,
   type MoneyActionState,
 } from "@/app/(desk)/jobs/money-actions";
 import { SchemaHintBanner } from "@/components/ui/schema-hint-banner";
-import type { MediaRow } from "@/lib/work-orders/types";
+import { MEDIA_TAG_LABELS, MEDIA_TAG_OPTIONS } from "@/lib/media/tags";
+import type { MediaRow, MediaTag } from "@/lib/work-orders/types";
+import { cn } from "@/lib/utils";
 
 const initial: MoneyActionState = { error: null };
 
@@ -24,6 +26,7 @@ export function JobMediaPanel({
   const [state, action, pending] = useActionState(uploadJobMediaAction, initial);
   const formRef = useRef<HTMLFormElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const [tag, setTag] = useState<MediaTag | "">("");
 
   if (schemaMissing) {
     return <SchemaHintBanner missing />;
@@ -39,7 +42,7 @@ export function JobMediaPanel({
           {media.map((item) => (
             <li
               key={item.id}
-              className="overflow-hidden rounded-xl border border-neutral-200 bg-white"
+              className="relative overflow-hidden rounded-xl border border-neutral-200 bg-white"
             >
               {signedUrls[item.id] ? (
                 // eslint-disable-next-line @next/next/no-img-element
@@ -51,6 +54,11 @@ export function JobMediaPanel({
               ) : (
                 <p className="p-3 text-xs text-neutral-400">{item.storagePath}</p>
               )}
+              {item.tag ? (
+                <span className="absolute left-1.5 top-1.5 rounded bg-neutral-950/80 px-1.5 py-0.5 text-[10px] font-medium text-white">
+                  {MEDIA_TAG_LABELS[item.tag]}
+                </span>
+              ) : null}
             </li>
           ))}
         </ul>
@@ -62,6 +70,24 @@ export function JobMediaPanel({
         encType="multipart/form-data"
       >
         <input type="hidden" name="workOrderId" value={workOrderId} />
+        <input type="hidden" name="tag" value={tag} />
+        <div className="flex flex-wrap gap-1.5">
+          {MEDIA_TAG_OPTIONS.map((option) => (
+            <button
+              key={option}
+              type="button"
+              className={cn(
+                "rounded-full border px-2.5 py-1 text-xs font-medium",
+                tag === option
+                  ? "border-neutral-950 bg-neutral-950 text-white"
+                  : "border-neutral-200 bg-white text-neutral-700",
+              )}
+              onClick={() => setTag((prev) => (prev === option ? "" : option))}
+            >
+              {MEDIA_TAG_LABELS[option]}
+            </button>
+          ))}
+        </div>
         <input
           ref={inputRef}
           id="file"

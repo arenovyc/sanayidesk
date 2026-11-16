@@ -5,6 +5,7 @@ import {
   updateJobIntakeAction,
   type JobActionState,
 } from "@/app/(desk)/jobs/actions";
+import { VoiceDictationButton } from "@/components/desk/voice-dictation-button";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -17,12 +18,14 @@ export function JobIntakeCompleteForm({
   phone,
   complaint,
   makeModel,
+  entryKm = "",
 }: {
   workOrderId: string;
   fullName: string;
   phone: string;
   complaint: string;
   makeModel: string;
+  entryKm?: string;
 }) {
   const [state, action, pending] = useActionState(updateJobIntakeAction, initial);
 
@@ -35,7 +38,7 @@ export function JobIntakeCompleteForm({
       <div>
         <p className="text-sm font-medium text-amber-950">Hızlı tamamla</p>
         <p className="mt-0.5 text-xs text-amber-900/80">
-          Müşteri, telefon, araç ve şikayet — kabul sonrası doldur.
+          Müşteri, telefon, araç, KM ve şikayet — kabul sonrası doldur.
         </p>
       </div>
       <div className="grid gap-3 sm:grid-cols-2">
@@ -59,7 +62,7 @@ export function JobIntakeCompleteForm({
             autoComplete="tel"
           />
         </div>
-        <div className="flex flex-col gap-1.5 sm:col-span-2">
+        <div className="flex flex-col gap-1.5">
           <Label htmlFor="makeModel">Marka / model</Label>
           <Input
             id="makeModel"
@@ -68,8 +71,21 @@ export function JobIntakeCompleteForm({
             defaultValue={makeModel}
           />
         </div>
+        <div className="flex flex-col gap-1.5">
+          <Label htmlFor="entryKm">Giriş KM</Label>
+          <Input
+            id="entryKm"
+            name="entryKm"
+            inputMode="numeric"
+            placeholder="örn. 142000"
+            defaultValue={entryKm}
+          />
+        </div>
         <div className="flex flex-col gap-1.5 sm:col-span-2">
-          <Label htmlFor="complaint">Şikayet / iş özeti</Label>
+          <div className="flex items-center justify-between gap-2">
+            <Label htmlFor="complaint">Şikayet / iş özeti</Label>
+            <VoiceDictationButton targetId="complaint" />
+          </div>
           <textarea
             id="complaint"
             name="complaint"

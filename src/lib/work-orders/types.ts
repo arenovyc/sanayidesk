@@ -68,13 +68,25 @@ export type PartRequestRow = {
   status: string;
 };
 
+export type MediaTag = "entry_damage" | "old_part" | "new_part";
+
 export type MediaRow = {
   id: string;
   storagePath: string;
   contentType: string;
   byteSize: number;
   createdAt: string;
+  tag: MediaTag | null;
 };
+
+export type VehicleCheckupLevel = "ok" | "soon" | "urgent";
+
+export type VehicleCheckup = Partial<
+  Record<
+    "brake_pads" | "tires" | "battery" | "wipers" | "fluids" | "belts",
+    VehicleCheckupLevel
+  >
+>;
 
 export type WorkOrderDetail = WorkOrderRow & {
   items: WorkOrderItemRow[];
@@ -84,6 +96,13 @@ export type WorkOrderDetail = WorkOrderRow & {
   due: number;
   paid: number;
   quoteAmount: number | null;
+  entryKm: number | null;
+  nextServiceKm: number | null;
+  publicToken: string | null;
+  approvedAt: string | null;
+  customerApprovalNote: string | null;
+  approvalQuestionAt: string | null;
+  vehicleCheckup: VehicleCheckup;
   /** Mega tablolar (003) yoksa true — kalem/tahsilat boş, crash yok */
   opsSchemaMissing?: boolean;
   /** 004 media yoksa true */
