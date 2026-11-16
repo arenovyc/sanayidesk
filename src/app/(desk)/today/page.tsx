@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import { PageSkeleton } from "@/components/ui/skeleton";
 import Link from "next/link";
 import { AcceptForm } from "@/components/desk/accept-form";
 import { ClearRemindButton } from "@/components/desk/clear-remind-button";
@@ -33,7 +34,7 @@ export default function TodayPage({
   searchParams: Promise<{ q?: string }>;
 }) {
   return (
-    <Suspense fallback={<p className="text-sm text-neutral-500">Yükleniyor…</p>}>
+    <Suspense fallback={<PageSkeleton />}>
       <TodayBody searchParams={searchParams} />
     </Suspense>
   );

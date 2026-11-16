@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import { PageSkeleton } from "@/components/ui/skeleton";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { requireDeskSession } from "@/lib/auth/get-membership";
@@ -15,7 +16,7 @@ export default function ReportsPage({
   searchParams: Promise<{ from?: string; to?: string }>;
 }) {
   return (
-    <Suspense fallback={<p className="text-sm text-neutral-500">Yükleniyor…</p>}>
+    <Suspense fallback={<PageSkeleton />}>
       <ReportsBody searchParams={searchParams} />
     </Suspense>
   );

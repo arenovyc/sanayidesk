@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import { PageSkeleton } from "@/components/ui/skeleton";
 import { notFound } from "next/navigation";
 import { B2bPartyDetailPanel } from "@/components/desk/b2b-forms";
 import { SchemaHintBanner } from "@/components/ui/schema-hint-banner";
@@ -15,7 +16,7 @@ export default function B2bPartyPage({
   params: Promise<{ partyId: string }>;
 }) {
   return (
-    <Suspense fallback={<p className="text-sm text-neutral-500">Yükleniyor…</p>}>
+    <Suspense fallback={<PageSkeleton />}>
       <B2bPartyBody params={params} />
     </Suspense>
   );

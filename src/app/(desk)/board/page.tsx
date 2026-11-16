@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import { PageSkeleton } from "@/components/ui/skeleton";
 import Link from "next/link";
 import { BoardColumns } from "@/components/desk/board-columns";
 import { JobSearch } from "@/components/desk/job-search";
@@ -24,7 +25,7 @@ export default function BoardPage({
   }>;
 }) {
   return (
-    <Suspense fallback={<p className="text-sm text-neutral-500">Yükleniyor…</p>}>
+    <Suspense fallback={<PageSkeleton />}>
       <BoardBody searchParams={searchParams} />
     </Suspense>
   );

@@ -1,4 +1,5 @@
 import "server-only";
+import { cache } from "react";
 import {
   emptyNotificationCounts,
   type DeskNotificationCounts,
@@ -17,9 +18,9 @@ function isMissingRelation(error: { code?: string; message?: string } | null) {
   );
 }
 
-export async function getDeskNotificationCounts(
+export const getDeskNotificationCounts = cache(async (
   workspaceId: string,
-): Promise<{ counts: DeskNotificationCounts; schemaMissing: boolean }> {
+): Promise<{ counts: DeskNotificationCounts; schemaMissing: boolean }> => {
   const supabase = await createServerSupabase();
   if (!supabase) {
     return { counts: emptyNotificationCounts(), schemaMissing: false };
@@ -72,4 +73,4 @@ export async function getDeskNotificationCounts(
       ),
     },
   };
-}
+});

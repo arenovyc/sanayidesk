@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import { PageSkeleton } from "@/components/ui/skeleton";
 import Link from "next/link";
 import {
   Car,
@@ -23,7 +24,7 @@ type MoreLink = { href: string; label: string; icon: LucideIcon };
 
 export default function MorePage() {
   return (
-    <Suspense fallback={<p className="text-sm text-neutral-500">Yükleniyor…</p>}>
+    <Suspense fallback={<PageSkeleton />}>
       <MoreBody />
     </Suspense>
   );

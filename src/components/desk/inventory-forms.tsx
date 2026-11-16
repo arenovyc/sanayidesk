@@ -409,7 +409,7 @@ export function JobInventoryIssueForm({
       </select>
       <Label htmlFor="jobQty">Miktar</Label>
       <Input id="jobQty" name="qty" type="number" step="0.01" min="0.01" required />
-      <Button type="submit" disabled={pending}>
+      <Button type="submit" size="sm" variant="outline" disabled={pending} className="w-fit">
         Stok düş
       </Button>
       {state.error ? <p className="text-sm text-red-700">{state.error}</p> : null}

@@ -59,7 +59,13 @@ export function AssignForm({
           ))}
         </select>
         {!compact ? (
-          <Button type="submit" size="sm" disabled={pending || mechanics.length === 0}>
+          <Button
+            type="submit"
+            size="sm"
+            variant="outline"
+            disabled={pending || mechanics.length === 0}
+            className="sm:w-fit"
+          >
             Kaydet
           </Button>
         ) : null}

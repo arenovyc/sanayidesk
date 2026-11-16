@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import { PageSkeleton } from "@/components/ui/skeleton";
 import Link from "next/link";
 import { Network } from "lucide-react";
 import { PageHeader } from "@/components/shells/page-header";
@@ -9,7 +10,7 @@ import { listNetworkShops } from "@/lib/data/network";
 
 export default function NetworkPage() {
   return (
-    <Suspense fallback={<p className="text-sm text-neutral-500">Yükleniyor…</p>}>
+    <Suspense fallback={<PageSkeleton />}>
       <NetworkBody />
     </Suspense>
   );

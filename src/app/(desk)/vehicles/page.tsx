@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import { PageSkeleton } from "@/components/ui/skeleton";
 import Link from "next/link";
 import { requireDeskSession } from "@/lib/auth/get-membership";
 import { listVehicles } from "@/lib/data/work-orders";
@@ -6,7 +7,7 @@ import { STATUS_LABELS } from "@/lib/work-orders/status";
 
 export default function VehiclesPage() {
   return (
-    <Suspense fallback={<p className="text-sm text-neutral-500">Yükleniyor…</p>}>
+    <Suspense fallback={<PageSkeleton />}>
       <VehiclesBody />
     </Suspense>
   );

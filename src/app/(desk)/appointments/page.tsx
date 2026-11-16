@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import { PageSkeleton } from "@/components/ui/skeleton";
 import { Calendar } from "lucide-react";
 import { AppointmentPanel } from "@/components/desk/appointment-forms";
 import { PageHeader } from "@/components/shells/page-header";
@@ -9,7 +10,7 @@ import { listAppointments } from "@/lib/data/appointments";
 
 export default function AppointmentsPage() {
   return (
-    <Suspense fallback={<p className="text-sm text-neutral-500">Yükleniyor…</p>}>
+    <Suspense fallback={<PageSkeleton />}>
       <AppointmentsBody />
     </Suspense>
   );

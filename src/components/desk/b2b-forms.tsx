@@ -188,7 +188,13 @@ export function B2bCreateEntryForm({
       </select>
       <Label htmlFor="entry-note">Not</Label>
       <Input id="entry-note" name="note" />
-      <Button type="submit" disabled={entryPending || parties.length === 0}>
+      <Button
+        type="submit"
+        size="sm"
+        variant="outline"
+        disabled={entryPending || parties.length === 0}
+        className="w-fit"
+      >
         Bekleyen kayıt oluştur
       </Button>
       {entryState.error ? (

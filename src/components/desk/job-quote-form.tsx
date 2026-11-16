@@ -12,11 +12,46 @@ const initial: QuoteActionState = { error: null };
 export function JobQuoteForm({
   workOrderId,
   quoteAmount,
+  compact = false,
 }: {
   workOrderId: string;
   quoteAmount: number | null;
+  compact?: boolean;
 }) {
   const [state, action, pending] = useActionState(setQuoteAmountAction, initial);
+
+  if (compact) {
+    return (
+      <form
+        action={action}
+        className="flex flex-wrap items-end gap-2 rounded-xl border border-dashed border-neutral-200 bg-white px-3 py-2.5"
+      >
+        <input type="hidden" name="workOrderId" value={workOrderId} />
+        <div className="min-w-[8rem] flex-1">
+          <Label htmlFor="quoteAmount" className="text-xs text-neutral-500">
+            Hızlı teklif (₺)
+            {quoteAmount != null ? ` · kayıtlı ${formatMoney(quoteAmount)}` : ""}
+          </Label>
+          <Input
+            id="quoteAmount"
+            name="quoteAmount"
+            type="number"
+            step="0.01"
+            min="0"
+            defaultValue={quoteAmount ?? ""}
+            placeholder="0.00"
+            className="mt-1 h-9"
+          />
+        </div>
+        <Button type="submit" size="sm" variant="outline" disabled={pending}>
+          Kaydet
+        </Button>
+        {state.error ? (
+          <p className="basis-full text-sm text-red-700">{state.error}</p>
+        ) : null}
+      </form>
+    );
+  }
 
   return (
     <form
@@ -43,7 +78,7 @@ export function JobQuoteForm({
         defaultValue={quoteAmount ?? ""}
         placeholder="0.00"
       />
-      <Button type="submit" disabled={pending}>
+      <Button type="submit" size="sm" variant="outline" disabled={pending} className="w-fit">
         Teklifi kaydet
       </Button>
       {state.error ? <p className="text-sm text-red-700">{state.error}</p> : null}

@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import { PageSkeleton } from "@/components/ui/skeleton";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { SchemaHintBanner } from "@/components/ui/schema-hint-banner";
@@ -9,7 +10,7 @@ import { formatMoney } from "@/lib/format/money";
 
 export default function BonusesPage() {
   return (
-    <Suspense fallback={<p className="text-sm text-neutral-500">Yükleniyor…</p>}>
+    <Suspense fallback={<PageSkeleton />}>
       <BonusesBody />
     </Suspense>
   );

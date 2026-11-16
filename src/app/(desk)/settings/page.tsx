@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import { PageSkeleton } from "@/components/ui/skeleton";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { NetworkSettingsForm } from "@/components/desk/network-settings-form";
@@ -7,7 +8,7 @@ import { requireDeskSession } from "@/lib/auth/get-membership";
 
 export default function SettingsPage() {
   return (
-    <Suspense fallback={<p className="text-sm text-neutral-500">Yükleniyor…</p>}>
+    <Suspense fallback={<PageSkeleton />}>
       <SettingsBody />
     </Suspense>
   );

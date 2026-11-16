@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import { PageSkeleton } from "@/components/ui/skeleton";
 import Link from "next/link";
 import { InventoryPanel } from "@/components/desk/inventory-forms";
 import { SchemaHintBanner } from "@/components/ui/schema-hint-banner";
@@ -12,7 +13,7 @@ import { listNetworkShops } from "@/lib/data/network";
 
 export default function InventoryPage() {
   return (
-    <Suspense fallback={<p className="text-sm text-neutral-500">Yükleniyor…</p>}>
+    <Suspense fallback={<PageSkeleton />}>
       <InventoryBody />
     </Suspense>
   );

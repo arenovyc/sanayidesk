@@ -70,7 +70,7 @@ export function JobMediaPanel({
           required
           className="text-sm"
         />
-        <Button type="submit" disabled={pending}>
+        <Button type="submit" size="sm" variant="outline" disabled={pending} className="w-fit">
           Foto yükle
         </Button>
         {state.error ? <p className="text-sm text-red-700">{state.error}</p> : null}

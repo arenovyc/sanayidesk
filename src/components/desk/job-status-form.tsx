@@ -56,14 +56,15 @@ export function JobStatusForm({
         </label>
       ) : null}
 
-      <div className="grid grid-cols-2 gap-2">
+      <div className="flex flex-wrap gap-2">
         {next.map((value) => (
           <Button
             key={value}
             type="button"
-            size="lg"
+            size="sm"
             variant={value === "cancelled" ? "outline" : "default"}
             disabled={pending}
+            className="rounded-full px-3.5"
             onClick={() => {
               if (
                 (value === "ready" || value === "delivered") &&

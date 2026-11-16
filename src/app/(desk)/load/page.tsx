@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import { PageSkeleton } from "@/components/ui/skeleton";
 import Link from "next/link";
 import { SchemaHintBanner } from "@/components/ui/schema-hint-banner";
 import { requireDeskSession } from "@/lib/auth/get-membership";
@@ -6,7 +7,7 @@ import { listMechanicLoad } from "@/lib/data/assignments";
 
 export default function LoadPage() {
   return (
-    <Suspense fallback={<p className="text-sm text-neutral-500">Yükleniyor…</p>}>
+    <Suspense fallback={<PageSkeleton />}>
       <LoadBody />
     </Suspense>
   );

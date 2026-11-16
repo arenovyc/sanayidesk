@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import { PageSkeleton } from "@/components/ui/skeleton";
 import Link from "next/link";
 import { DirectoryPanel } from "@/components/desk/directory-forms";
 import { requireDeskSession } from "@/lib/auth/get-membership";
@@ -6,7 +7,7 @@ import { listDirectory } from "@/lib/data/ops";
 
 export default function DirectoryPage() {
   return (
-    <Suspense fallback={<p className="text-sm text-neutral-500">Yükleniyor…</p>}>
+    <Suspense fallback={<PageSkeleton />}>
       <DirectoryBody />
     </Suspense>
   );

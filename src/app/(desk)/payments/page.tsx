@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import { PageSkeleton } from "@/components/ui/skeleton";
 import Link from "next/link";
 import { Banknote } from "lucide-react";
 import { PageHeader } from "@/components/shells/page-header";
@@ -16,7 +17,7 @@ const METHOD_LABELS: Record<string, string> = {
 
 export default function PaymentsPage() {
   return (
-    <Suspense fallback={<p className="text-sm text-neutral-500">Yükleniyor…</p>}>
+    <Suspense fallback={<PageSkeleton />}>
       <PaymentsBody />
     </Suspense>
   );

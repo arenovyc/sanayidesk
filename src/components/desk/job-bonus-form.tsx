@@ -82,7 +82,13 @@ export function JobBonusPanel({
           <Input id="bonus-amount" name="amount" inputMode="decimal" required />
           <Label htmlFor="bonus-note">Not</Label>
           <Input id="bonus-note" name="note" />
-          <Button type="submit" disabled={pending || mechanics.length === 0}>
+          <Button
+            type="submit"
+            size="sm"
+            variant="outline"
+            disabled={pending || mechanics.length === 0}
+            className="w-fit"
+          >
             Prim ekle
           </Button>
           {state.error ? <p className="text-sm text-red-700">{state.error}</p> : null}

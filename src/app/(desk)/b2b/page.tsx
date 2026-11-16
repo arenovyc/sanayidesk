@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import { PageSkeleton } from "@/components/ui/skeleton";
 import { B2bIndexPanel } from "@/components/desk/b2b-forms";
 import { SchemaHintBanner } from "@/components/ui/schema-hint-banner";
 import { requireDeskSession } from "@/lib/auth/get-membership";
@@ -12,7 +13,7 @@ import { listDirectory } from "@/lib/data/ops";
 
 export default function B2bPage() {
   return (
-    <Suspense fallback={<p className="text-sm text-neutral-500">Yükleniyor…</p>}>
+    <Suspense fallback={<PageSkeleton />}>
       <B2bBody />
     </Suspense>
   );

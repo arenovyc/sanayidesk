@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import { PageSkeleton } from "@/components/ui/skeleton";
 import Link from "next/link";
 import { Users } from "lucide-react";
 import { PageHeader } from "@/components/shells/page-header";
@@ -9,7 +10,7 @@ import { formatMoney } from "@/lib/format/money";
 
 export default function CustomersPage() {
   return (
-    <Suspense fallback={<p className="text-sm text-neutral-500">Yükleniyor…</p>}>
+    <Suspense fallback={<PageSkeleton />}>
       <CustomersBody />
     </Suspense>
   );

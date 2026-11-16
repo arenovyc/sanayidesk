@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import { PageSkeleton } from "@/components/ui/skeleton";
 import Link from "next/link";
 import { logoutAction } from "@/app/(auth)/actions";
 import { ChangePasswordForm } from "@/components/auth/change-password-form";
@@ -7,7 +8,7 @@ import { getAuthUser, requireDeskSession } from "@/lib/auth/get-membership";
 
 export default function AccountSettingsPage() {
   return (
-    <Suspense fallback={<p className="text-sm text-neutral-500">Yükleniyor…</p>}>
+    <Suspense fallback={<PageSkeleton />}>
       <AccountBody />
     </Suspense>
   );
