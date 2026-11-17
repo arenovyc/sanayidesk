@@ -44,21 +44,19 @@ export function HomeContent({
               veresiye defteri tek yerde. Kurulum yok, muhasebe karmaşası yok.
             </p>
 
-            <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+            <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">
               <Button
                 asChild
                 size="lg"
-                className="bg-amber-500 text-zinc-950 hover:bg-amber-400"
+                className="bg-amber-500 text-zinc-950 hover:bg-amber-400 sm:shrink-0"
               >
-                <Link href="/register">
-                  {TRIAL_DAYS} Gün Ücretsiz Dükkan Aç
-                </Link>
+                <Link href="/register">{TRIAL_DAYS} Gün Ücretsiz Kullan</Link>
               </Button>
               <Button
                 asChild
                 size="lg"
                 variant="outline"
-                className="border-white/15 bg-transparent text-zinc-100 hover:bg-white/5 hover:text-white"
+                className="border-white/15 bg-transparent text-zinc-100 hover:bg-white/5 hover:text-white sm:shrink-0"
               >
                 <Link href="/demo">Kayıt Olmadan Canlı Demoyu Gör</Link>
               </Button>
@@ -90,7 +88,7 @@ export function HomeContent({
             Nasıl çalışır?
           </h2>
           <p className="mx-auto mt-2 max-w-md text-center text-sm text-zinc-500">
-            Üç adımda günlük rutin — kurulum yok, kart yok.
+            Üç adımda atölye düzeni — kurulum yok, kart yok.
           </p>
           <ol className="mt-10 grid gap-4 md:grid-cols-3">
             {[
@@ -159,23 +157,23 @@ export function HomeContent({
         </section>
 
         <section className="mt-16 border-t border-white/10 pt-12">
-          <h2 className="text-lg font-semibold text-white">SSS</h2>
-          <dl className="mt-6 space-y-6">
-            <div>
+          <h2 className="text-center text-xl font-semibold text-white">SSS</h2>
+          <dl className="mt-8 grid gap-4 md:grid-cols-2">
+            <div className="rounded-2xl border border-white/10 bg-white/[0.02] p-6">
               <dt className="text-sm font-medium text-white">
                 Usta nasıl girer?
               </dt>
-              <dd className="mt-1.5 text-sm leading-6 text-zinc-400">
+              <dd className="mt-2 text-sm leading-6 text-zinc-400">
                 Telefonda /pin — dükkan kodu + 4 haneli PIN. E-posta gerekmez.
               </dd>
             </div>
-            <div>
+            <div className="rounded-2xl border border-white/10 bg-white/[0.02] p-6">
               <dt className="text-sm font-medium text-white">
                 Sanayi ağı nedir?
               </dt>
-              <dd className="mt-1.5 text-sm leading-6 text-zinc-400">
-                Rızanla görünür dükkanlar arasında plaka özeti ve stok transferi.
-                Zorunlu değil.
+              <dd className="mt-2 text-sm leading-6 text-zinc-400">
+                Sadece senin onay verdiğin komşu dükkanlarla parça alışverişi ve
+                paslaşma yapabilirsin. İstemezsen tamamen kapalı kalır.
               </dd>
             </div>
           </dl>

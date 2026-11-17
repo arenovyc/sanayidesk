@@ -48,13 +48,13 @@ export function HomeBoardPreview() {
         status="İçeride"
       />
       <UsageCard
-        plate="34 ORN 001"
-        vehicle="Örnek iş"
-        badge={{ text: "Onay Bekliyor", tone: "amber" }}
-        mechanic="—"
-        amount="₺2.150"
-        status="Kabul"
-        muted
+        plate="34 BJK 192"
+        vehicle="Renault Megane"
+        job="Debriyaj Seti Değişimi"
+        badge={{ text: "İçeride", tone: "amber" }}
+        mechanic="Mehmet Usta"
+        amount="₺8.900"
+        status="İçeride"
       />
 
       <div className="border-t border-white/10 bg-[#0c0c0e] px-4 py-3">
@@ -75,19 +75,19 @@ export function HomeBoardPreview() {
 function UsageCard({
   plate,
   vehicle,
+  job,
   badge,
   mechanic,
   amount,
   status,
-  muted,
 }: {
   plate: string;
   vehicle: string;
+  job?: string;
   badge: { text: string; tone: "emerald" | "amber" };
   mechanic: string;
   amount: string;
   status: string;
-  muted?: boolean;
 }) {
   const badgeClass =
     badge.tone === "emerald"
@@ -95,19 +95,16 @@ function UsageCard({
       : "bg-amber-500/15 text-amber-400";
 
   return (
-    <div
-      className={
-        muted
-          ? "mx-3 mb-3 rounded-xl border border-white/5 bg-white/[0.02] p-3"
-          : "mx-3 mb-3 rounded-xl border border-white/10 bg-white/[0.04] p-3"
-      }
-    >
+    <div className="mx-3 mb-3 rounded-xl border border-white/10 bg-white/[0.04] p-3">
       <div className="flex items-start justify-between gap-2">
         <div>
           <p className="font-mono text-sm font-medium tracking-wide text-zinc-100">
             {plate}
           </p>
           <p className="text-xs text-zinc-500">{vehicle}</p>
+          {job ? (
+            <p className="mt-0.5 text-xs text-zinc-400">{job}</p>
+          ) : null}
         </div>
         <span
           className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-medium ${badgeClass}`}

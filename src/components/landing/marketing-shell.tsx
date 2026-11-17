@@ -30,16 +30,10 @@ export function MarketingShell({
       }
     >
       {dark ? (
-        <>
-          <div
-            aria-hidden
-            className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_15%_-10%,rgba(251,191,36,0.12),transparent_45%),radial-gradient(ellipse_at_85%_0%,rgba(255,255,255,0.05),transparent_40%)]"
-          />
-          <div
-            aria-hidden
-            className="pointer-events-none absolute inset-0 opacity-[0.04] [background-image:linear-gradient(rgba(255,255,255,0.45)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.45)_1px,transparent_1px)] [background-size:56px_56px]"
-          />
-        </>
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-0 opacity-[0.035] [background-image:linear-gradient(rgba(255,255,255,0.5)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.5)_1px,transparent_1px)] [background-size:56px_56px]"
+        />
       ) : null}
 
       <header className="relative z-10 border-b border-white/10">
