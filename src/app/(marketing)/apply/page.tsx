@@ -45,10 +45,12 @@ async function ApplyBody({
   ]);
   const panelHref = ctx ? homeForRole(ctx.membership.role) : null;
   const showPlatformAdmin = isPlatformAdminEmail(authUser?.email ?? null);
+  const sessionLoggedIn = Boolean(authUser);
 
   return (
     <MarketingShell
       tone="light"
+      sessionLoggedIn={sessionLoggedIn}
       panelHref={panelHref}
       showPlatformAdmin={showPlatformAdmin}
     >

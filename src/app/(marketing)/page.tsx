@@ -11,7 +11,7 @@ export default function HomePage() {
   return (
     <Suspense
       fallback={
-        <div className="flex min-h-dvh items-center justify-center bg-neutral-950 text-sm text-neutral-500">
+        <div className="flex min-h-dvh items-center justify-center bg-[#09090b] text-sm text-zinc-500">
           Yükleniyor…
         </div>
       }
@@ -27,14 +27,14 @@ async function HomeBody() {
     getAuthUser(),
   ]);
 
+  const sessionLoggedIn = Boolean(authUser);
   const panelHref = ctx ? homeForRole(ctx.membership.role) : null;
-  const needsRegister = Boolean(authUser && !ctx);
   const showPlatformAdmin = isPlatformAdminEmail(authUser?.email ?? null);
 
   return (
     <HomeContent
+      sessionLoggedIn={sessionLoggedIn}
       panelHref={panelHref}
-      needsRegister={needsRegister}
       showPlatformAdmin={showPlatformAdmin}
     />
   );

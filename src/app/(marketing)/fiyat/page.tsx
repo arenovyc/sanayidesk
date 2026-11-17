@@ -41,9 +41,11 @@ async function PricingBody() {
   ]);
   const panelHref = ctx ? homeForRole(ctx.membership.role) : null;
   const showPlatformAdmin = isPlatformAdminEmail(authUser?.email ?? null);
+  const sessionLoggedIn = Boolean(authUser);
 
   return (
     <MarketingShell
+      sessionLoggedIn={sessionLoggedIn}
       panelHref={panelHref}
       showPlatformAdmin={showPlatformAdmin}
       tone="dark"
