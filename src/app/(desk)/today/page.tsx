@@ -22,6 +22,7 @@ import {
 import { formatIstanbulDate } from "@/lib/format/date";
 import { displayPlate } from "@/lib/format/plate";
 import { waMaintenanceReminderMessage } from "@/lib/format/wa-templates";
+import { requestNow } from "@/lib/time/request-now";
 import {
   BUCKET_LABELS,
   STATUS_LABELS,
@@ -35,7 +36,8 @@ export default async function TodayPage({
 }) {
   const ctx = await requireDeskSession();
   const query = await searchParams;
-  const { startIso, endIso } = istanbulDayBoundsIso();
+  const now = await requestNow();
+  const { startIso, endIso } = istanbulDayBoundsIso(now);
   const [board, searchHits, appointments, reminders] = await Promise.all([
     getTodayBoard(ctx.workspace.id),
     query.q ? searchWorkOrders(ctx.workspace.id, query.q) : Promise.resolve([]),

@@ -31,7 +31,7 @@ async function ReportsBody({
   if (ctx.membership.role !== "owner") redirect("/more");
 
   const query = await searchParams;
-  const defaults = defaultReportRange();
+  const defaults = await defaultReportRange();
   const parsed = reportRangeSchema.safeParse({
     from: query.from ?? defaults.from,
     to: query.to ?? defaults.to,

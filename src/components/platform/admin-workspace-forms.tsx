@@ -7,10 +7,7 @@ import {
   type AdminActionState,
 } from "@/app/(platform)/admin-actions";
 import { Button } from "@/components/ui/button";
-import {
-  trialDaysLeft,
-  type AdminWorkspaceRow,
-} from "@/lib/data/admin-workspace-types";
+import type { AdminWorkspaceRow } from "@/lib/data/admin-workspace-types";
 import { formatIstanbulDate } from "@/lib/format/date";
 
 const initial: AdminActionState = { error: null };
@@ -41,7 +38,7 @@ function WorkspaceAdminCard({ row }: { row: AdminWorkspaceRow }) {
     initial,
   );
 
-  const daysLeft = trialDaysLeft(row.trialEndsAt);
+  const daysLeft = row.daysLeft;
   const wa = waMeLink(row.ownerPhone, row.name);
   const error = extendState.error ?? activateState.error;
 

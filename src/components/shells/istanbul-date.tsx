@@ -7,7 +7,7 @@ import { formatIstanbulDate } from "@/lib/format/date";
 export function IstanbulDateLabel({ className }: { className?: string }) {
   const label = useSyncExternalStore(
     () => () => {},
-    () => formatIstanbulDate(),
+    () => formatIstanbulDate(new Date()),
     () => "",
   );
 

@@ -20,11 +20,11 @@ const timeHm = new Intl.DateTimeFormat("tr-TR", {
   hour12: false,
 });
 
-export function formatIstanbulDate(date: Date = new Date()): string {
+export function formatIstanbulDate(date: Date): string {
   return dayMonthYear.format(date);
 }
 
-export function istanbulYear(date: Date = new Date()): number {
+export function istanbulYear(date: Date): number {
   const parts = new Intl.DateTimeFormat("en-US", {
     timeZone: ISTANBUL,
     year: "numeric",
@@ -52,7 +52,7 @@ function formatIstanbulTime(date: Date): string {
 }
 
 /** e.g. "Bugün 10.28'de atandı" / "Dün 09.15'de atandı" / "16 Kas 10.28'de atandı" */
-export function formatAssignedAtLabel(iso: string, now: Date = new Date()): string {
+export function formatAssignedAtLabel(iso: string, now: Date): string {
   const at = new Date(iso);
   if (Number.isNaN(at.getTime())) return iso;
 
@@ -71,7 +71,7 @@ export function formatAssignedAtLabel(iso: string, now: Date = new Date()): stri
 export function formatAssignmentRangeLabel(
   assignedAt: string,
   unassignedAt: string,
-  now: Date = new Date(),
+  now: Date,
 ): string {
   const start = new Date(assignedAt);
   const end = new Date(unassignedAt);

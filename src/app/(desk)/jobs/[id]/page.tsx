@@ -32,6 +32,7 @@ import { listDirectory, listTeam } from "@/lib/data/ops";
 import { formatIstanbulDate } from "@/lib/format/date";
 import { formatMoney } from "@/lib/format/money";
 import { getWorkOrderDetail } from "@/lib/data/work-orders";
+import { requestNow } from "@/lib/time/request-now";
 import { remainingDue } from "@/lib/work-orders/money";
 import { STATUS_LABELS } from "@/lib/work-orders/status";
 
@@ -82,8 +83,9 @@ export default async function JobDetailPage({
   const nextServiceKm =
     job.nextServiceKm ??
     (job.entryKm != null ? job.entryKm + 10000 : null);
+  const now = await requestNow();
   const nextServiceDateLabel = (() => {
-    const d = new Date();
+    const d = new Date(now.getTime());
     d.setMonth(d.getMonth() + 10);
     return formatIstanbulDate(d);
   })();

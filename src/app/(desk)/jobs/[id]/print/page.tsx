@@ -6,6 +6,7 @@ import { requireDeskSession } from "@/lib/auth/get-membership";
 import { getWorkOrderDetail } from "@/lib/data/work-orders";
 import { formatMoney } from "@/lib/format/money";
 import { approvalPageUrl } from "@/lib/supabase/env";
+import { requestNow } from "@/lib/time/request-now";
 import { remainingDue } from "@/lib/work-orders/money";
 import { STATUS_LABELS } from "@/lib/work-orders/status";
 
@@ -44,7 +45,8 @@ async function JobPrintBody({ params }: { params: Promise<{ id: string }> }) {
     .filter(Boolean)
     .join(" · ");
   const remaining = remainingDue(job.due, job.paid);
-  const printedAt = new Date().toLocaleString("tr-TR", {
+  const now = await requestNow();
+  const printedAt = now.toLocaleString("tr-TR", {
     timeZone: "Europe/Istanbul",
   });
   const approvalUrl = job.publicToken

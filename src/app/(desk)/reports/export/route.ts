@@ -13,7 +13,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.redirect(new URL("/login", request.url));
   }
 
-  const defaults = defaultReportRange();
+  const defaults = await defaultReportRange();
   const parsed = reportRangeSchema.safeParse({
     from: request.nextUrl.searchParams.get("from") ?? defaults.from,
     to: request.nextUrl.searchParams.get("to") ?? defaults.to,

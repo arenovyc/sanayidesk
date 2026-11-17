@@ -1,5 +1,5 @@
 /** Istanbul calendar day bounds as ISO UTC strings for timestamptz filters. */
-export function istanbulDayBoundsIso(now = new Date()): {
+export function istanbulDayBoundsIso(now: Date): {
   startIso: string;
   endIso: string;
 } {

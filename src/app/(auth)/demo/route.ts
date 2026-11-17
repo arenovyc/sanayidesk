@@ -1,10 +1,10 @@
+import { connection } from "next/server";
 import { NextResponse } from "next/server";
 import { getSiteUrl, MISSING_SUPABASE_ENV } from "@/lib/supabase/env";
 import { createServerSupabase } from "@/lib/supabase/server";
 
-export const dynamic = "force-dynamic";
-
 export async function GET() {
+  await connection();
   const siteUrl = getSiteUrl();
   const email = process.env.DEMO_LOGIN_EMAIL?.trim();
   const password = process.env.DEMO_LOGIN_PASSWORD?.trim();

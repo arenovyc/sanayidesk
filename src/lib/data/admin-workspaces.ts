@@ -1,6 +1,10 @@
 import "server-only";
+import {
+  trialDaysLeft,
+  type AdminWorkspaceRow,
+} from "@/lib/data/admin-workspace-types";
 import { createAdminSupabase } from "@/lib/supabase/admin";
-import type { AdminWorkspaceRow } from "@/lib/data/admin-workspace-types";
+import { requestNowMs } from "@/lib/time/request-now";
 
 export type { AdminWorkspaceRow } from "@/lib/data/admin-workspace-types";
 export { trialDaysLeft } from "@/lib/data/admin-workspace-types";
@@ -9,6 +13,7 @@ export async function listAdminWorkspaces(): Promise<{
   rows: AdminWorkspaceRow[];
   error: string | null;
 }> {
+  const nowMs = await requestNowMs();
   const admin = createAdminSupabase();
   if (!admin) {
     return { rows: [], error: "Service role yapılandırılmamış" };
@@ -51,6 +56,7 @@ export async function listAdminWorkspaces(): Promise<{
           workOrderCount: 0,
           mechanicCount: 0,
           lastActivityAt: null,
+          daysLeft: null,
         })),
       };
     }
@@ -118,6 +124,8 @@ export async function listAdminWorkspaces(): Promise<{
     error: null,
     rows: workspaces.map((row) => {
       const owner = ownerByWs.get(row.id);
+      const trialEndsAt =
+        (row as { trial_ends_at?: string | null }).trial_ends_at ?? null;
       return {
         id: row.id,
         name: row.name,
@@ -126,8 +134,7 @@ export async function listAdminWorkspaces(): Promise<{
         isSuspended: Boolean(
           (row as { is_suspended?: boolean }).is_suspended,
         ),
-        trialEndsAt:
-          (row as { trial_ends_at?: string | null }).trial_ends_at ?? null,
+        trialEndsAt,
         createdAt: row.created_at,
         cityDistrict:
           (row as { city_district?: string | null }).city_district ?? null,
@@ -136,6 +143,7 @@ export async function listAdminWorkspaces(): Promise<{
         workOrderCount: woCountByWs.get(row.id) ?? 0,
         mechanicCount: mechanicCountByWs.get(row.id) ?? 0,
         lastActivityAt: lastActivityByWs.get(row.id) ?? null,
+        daysLeft: trialDaysLeft(trialEndsAt, nowMs),
       };
     }),
   };

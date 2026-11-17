@@ -1,5 +1,6 @@
 import "server-only";
 import { createServerSupabase } from "@/lib/supabase/server";
+import { requestNow } from "@/lib/time/request-now";
 
 export type BonusRow = {
   id: string;
@@ -25,7 +26,7 @@ function isMissingRelation(error: { code?: string; message?: string } | null) {
   );
 }
 
-function istanbulMonthBounds(now = new Date()): { start: string; end: string } {
+function istanbulMonthBounds(now: Date): { start: string; end: string } {
   const fmt = new Intl.DateTimeFormat("en-CA", {
     timeZone: "Europe/Istanbul",
     year: "numeric",
@@ -76,7 +77,7 @@ export async function listBonusesThisMonth(
   const supabase = await createServerSupabase();
   if (!supabase) return { rows: [], schemaMissing: false };
 
-  const { start, end } = istanbulMonthBounds();
+  const { start, end } = istanbulMonthBounds(await requestNow());
   const { data, error } = await supabase
     .from("mechanic_bonus_entries")
     .select(

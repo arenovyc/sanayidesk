@@ -12,11 +12,16 @@ export type AdminWorkspaceRow = {
   workOrderCount: number;
   mechanicCount: number;
   lastActivityAt: string | null;
+  /** Precomputed on the server with request-time now — avoids Date.now() in render. */
+  daysLeft: number | null;
 };
 
-export function trialDaysLeft(trialEndsAt: string | null): number | null {
+export function trialDaysLeft(
+  trialEndsAt: string | null,
+  nowMs: number,
+): number | null {
   if (!trialEndsAt) return null;
   const end = new Date(trialEndsAt).getTime();
   if (Number.isNaN(end)) return null;
-  return Math.ceil((end - Date.now()) / 86_400_000);
+  return Math.ceil((end - nowMs) / 86_400_000);
 }

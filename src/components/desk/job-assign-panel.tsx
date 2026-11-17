@@ -1,3 +1,6 @@
+"use client";
+
+import { useSyncExternalStore } from "react";
 import { AssignForm } from "@/components/desk/assign-form";
 import { SchemaHintBanner } from "@/components/ui/schema-hint-banner";
 import type { AssignmentHistoryRow } from "@/lib/data/assignments";
@@ -6,6 +9,26 @@ import {
   formatAssignedAtLabel,
   formatAssignmentRangeLabel,
 } from "@/lib/format/date";
+
+function AssignmentTimeLabel({
+  assignedAt,
+  unassignedAt,
+}: {
+  assignedAt: string;
+  unassignedAt: string | null;
+}) {
+  const label = useSyncExternalStore(
+    () => () => {},
+    () => {
+      const now = new Date();
+      return unassignedAt
+        ? formatAssignmentRangeLabel(assignedAt, unassignedAt, now)
+        : formatAssignedAtLabel(assignedAt, now);
+    },
+    () => "",
+  );
+  return <span>{label || "\u00a0"}</span>;
+}
 
 export function JobAssignPanel({
   workOrderId,
@@ -41,9 +64,10 @@ export function JobAssignPanel({
             <li key={row.id} className="px-4 py-2.5 text-sm">
               <p className="font-medium">{row.displayName}</p>
               <p className="text-xs text-neutral-500">
-                {row.unassignedAt
-                  ? formatAssignmentRangeLabel(row.assignedAt, row.unassignedAt)
-                  : formatAssignedAtLabel(row.assignedAt)}
+                <AssignmentTimeLabel
+                  assignedAt={row.assignedAt}
+                  unassignedAt={row.unassignedAt}
+                />
               </p>
             </li>
           ))}

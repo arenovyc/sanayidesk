@@ -7,6 +7,7 @@ import { displayPlate, normalizePlate } from "@/lib/format/plate";
 import { waitLabel } from "@/lib/format/wait-label";
 import { parseJobQuery } from "@/lib/search/job-query";
 import { createServerSupabase } from "@/lib/supabase/server";
+import { requestNowMs } from "@/lib/time/request-now";
 import { boardColumnForStatus } from "@/lib/assignments/rules";
 import {
   bucketForStatus,
@@ -243,7 +244,7 @@ export async function getStatusBoard(
     filters?.status && isWorkOrderStatus(filters.status)
       ? boardColumnForStatus(filters.status)
       : null;
-  const renderedAtMs = Date.now();
+  const renderedAtMs = await requestNowMs();
 
   for (const job of jobs) {
     const column = boardColumnForStatus(job.status);

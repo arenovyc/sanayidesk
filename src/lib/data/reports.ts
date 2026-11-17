@@ -6,6 +6,7 @@ import {
   rangeToInclusiveEndIso,
 } from "@/lib/reports/range";
 import { createServerSupabase } from "@/lib/supabase/server";
+import { requestNow } from "@/lib/time/request-now";
 import { OPEN_STATUSES } from "@/lib/work-orders/status";
 
 export type ReportSummary = {
@@ -28,10 +29,11 @@ export type ReportPaymentRow = {
   displayNo: string | null;
 };
 
-export function defaultReportRange() {
+export async function defaultReportRange() {
+  const today = istanbulTodayYmd(await requestNow());
   return {
-    from: istanbulMonthStartYmd(),
-    to: istanbulTodayYmd(),
+    from: istanbulMonthStartYmd(today),
+    to: today,
   };
 }
 

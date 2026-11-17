@@ -1,16 +1,16 @@
 /** Istanbul calendar YYYY-MM-DD helpers for reports. */
 
-export function istanbulTodayYmd(): string {
+export function istanbulTodayYmd(now: Date): string {
   return new Intl.DateTimeFormat("en-CA", {
     timeZone: "Europe/Istanbul",
     year: "numeric",
     month: "2-digit",
     day: "2-digit",
-  }).format(new Date());
+  }).format(now);
 }
 
-export function istanbulMonthStartYmd(today = istanbulTodayYmd()): string {
-  return `${today.slice(0, 7)}-01`;
+export function istanbulMonthStartYmd(todayYmd: string): string {
+  return `${todayYmd.slice(0, 7)}-01`;
 }
 
 export function rangeToInclusiveEndIso(toYmd: string): string {

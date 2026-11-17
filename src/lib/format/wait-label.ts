@@ -1,8 +1,5 @@
 /** Relative wait label from opened_at (ISO) for board cards. */
-export function waitLabel(
-  openedAtIso: string,
-  nowMs: number = Date.now(),
-): string {
+export function waitLabel(openedAtIso: string, nowMs: number): string {
   const opened = Date.parse(openedAtIso);
   if (Number.isNaN(opened)) return "";
   const minutes = Math.max(0, Math.floor((nowMs - opened) / 60_000));
