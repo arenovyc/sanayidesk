@@ -3,12 +3,20 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { bannerCopy, type TradeKind } from "@/lib/trade/kinds";
 
 const STORAGE_KEY = "sd_shop_code_banner_dismissed";
 
-export function ShopCodeBanner({ shopCode }: { shopCode: string | undefined }) {
+export function ShopCodeBanner({
+  shopCode,
+  tradeKind = "tamir",
+}: {
+  shopCode: string | undefined;
+  tradeKind?: TradeKind;
+}) {
   const router = useRouter();
   const [visible, setVisible] = useState(false);
+  const copy = bannerCopy(tradeKind);
 
   useEffect(() => {
     if (!shopCode) return;
@@ -41,22 +49,18 @@ export function ShopCodeBanner({ shopCode }: { shopCode: string | undefined }) {
     >
       <div className="flex items-start justify-between gap-3">
         <div>
-          <p className="font-medium">Dükkanınız hazır!</p>
+          <p className="font-medium">{copy.title}</p>
           <p className="mt-1 text-amber-900/90">
-            Ustalarınızın PIN ile gireceği dükkan kodu:{" "}
+            Ustaların PIN ile gireceği dükkan kodu:{" "}
             <span className="font-mono font-semibold tracking-wide">{shopCode}</span>
           </p>
-          <p className="mt-1 text-amber-900/80">
-            Listedeki <span className="font-mono">34 ORN 001</span> örnek
-            iştir — inceleyip silebilirsiniz. İlk kendi aracını plaka kutusundan
-            kabul et.
-          </p>
+          <p className="mt-1 text-amber-900/80">{copy.body}</p>
           <p className="mt-2">
             <Link
-              href="/team"
+              href={copy.ctaHref}
               className="font-medium underline-offset-4 hover:underline"
             >
-              Usta ekle
+              {copy.ctaLabel}
             </Link>
           </p>
         </div>

@@ -1,16 +1,26 @@
 import Link from "next/link";
 import { ChevronRight } from "lucide-react";
+import { workOrderLabel } from "@/lib/work-orders/display";
 import { STATUS_LABELS } from "@/lib/work-orders/status";
 import type { WorkOrderRow } from "@/lib/work-orders/types";
 
 export function JobRow({ job }: { job: WorkOrderRow }) {
+  const label = workOrderLabel(job);
   return (
     <Link
       href={`/jobs/${job.id}`}
       className="flex items-center justify-between gap-3 rounded-xl border border-neutral-200 bg-white px-4 py-3"
     >
       <span className="flex min-w-0 flex-col">
-        <span className="font-mono text-base tracking-wide">{job.plate}</span>
+        <span
+          className={
+            job.counterTitle
+              ? "truncate text-base font-medium tracking-normal"
+              : "font-mono text-base tracking-wide"
+          }
+        >
+          {label}
+        </span>
         {job.displayNo ? (
           <span className="font-mono text-xs text-neutral-400">
             {job.displayNo}

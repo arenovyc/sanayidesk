@@ -35,7 +35,18 @@ Canlı HTTP (curl):
 
 Yeni dükkan ilk ekranı **Bugün**’dür. Sarı kutu dükkan kodunu gösterir; **34 ORN 001** örnek iştir (silinebilir). Bugün özetinde “İçeride” kovası kabul + onay + içeride işleri birlikte sayar — kart rozeti yine **Kabul** yazar.
 
+## Sanayi Sürümü (manuel matris)
+
+| Branş | Beklenen `/today` |
+|-------|-------------------|
+| tamir/kaporta/elektrik/lastik | Atölye + plaka + hızlı etiket |
+| parca | Tezgâh çıkış + stok özeti; banner’da 34 ORN yok |
+| torna | Tezgâh + Geldi/İşlemde/Hazır |
+| Hepsi | Alt menüde **Komşular**; rehber WA + gölge cari |
+
+Migration: `024_counter_and_neighbors.sql` (canlı SQL Editor). `accept_work_order` A3 aynı.
+
 ## Sonraki
 
-- Playwright: `register/fresh` → unique email → today’de örnek plaka assert.
-- Smoke HTTP’yi SITE_URL canlıysa otomatik A7’ye bağla (aşağıdaki script iyileştirmesi).
+- Playwright: 6 branş × kayıt × kabuk assert.
+- Smoke HTTP’yi SITE_URL canlıysa otomatik A7’ye bağla.

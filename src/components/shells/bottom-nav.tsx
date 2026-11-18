@@ -8,6 +8,7 @@ import {
   ClipboardList,
   LayoutGrid,
   ListTodo,
+  Network,
   Package,
   Sun,
   type LucideIcon,
@@ -20,6 +21,7 @@ const MENUS: Record<NavVariant, { href: string; label: string; icon: LucideIcon 
   desk: [
     { href: "/today", label: "Bugün", icon: Sun },
     { href: "/board", label: "İşler", icon: ClipboardList },
+    { href: "/neighbors", label: "Komşular", icon: Network },
     { href: "/payments", label: "Tahsilat", icon: Banknote },
     { href: "/more", label: "Daha fazla", icon: LayoutGrid },
   ],

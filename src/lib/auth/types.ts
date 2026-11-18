@@ -1,4 +1,5 @@
 import type { MembershipRole } from "@/lib/auth/roles";
+import type { TradeKind } from "@/lib/trade/kinds";
 
 export type AppUser = {
   id: string;
@@ -23,6 +24,7 @@ export type Workspace = {
   settings: WorkspaceSettings;
   isSuspended: boolean;
   trialEndsAt: string | null;
+  tradeKind: TradeKind;
 };
 
 export type Membership = {

@@ -54,6 +54,7 @@ export default async function MorePage() {
     {
       title: "Ağ",
       links: [
+        { href: "/neighbors", label: "Komşular", icon: Network },
         { href: "/directory", label: "Parçacı rehberi", icon: Package },
         { href: "/network", label: "Sanayi ağı", icon: Network },
         { href: "/messages", label: "Paylaşım kayıtları", icon: Share2 },

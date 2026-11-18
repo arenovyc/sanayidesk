@@ -11,6 +11,8 @@ export type WorkOrderRow = {
   openedAt: string;
   closedAt: string | null;
   plate: string;
+  /** Plakasız tezgâh başlığı; plate boş olabilir */
+  counterTitle: string | null;
   displayNo: string | null;
   makeModel: string | null;
   customerId: string | null;

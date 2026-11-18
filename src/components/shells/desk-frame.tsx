@@ -27,7 +27,7 @@ function BottomNavFallback() {
   return (
     <nav className="fixed inset-x-0 bottom-0 z-20 border-t border-neutral-200 bg-white/95 pb-[env(safe-area-inset-bottom)] backdrop-blur print:hidden">
       <ul className="mx-auto flex max-w-lg">
-        {["Bugün", "İşler", "Tahsilat", "Daha fazla"].map((label) => (
+        {["Bugün", "İşler", "Komşular", "Tahsilat", "Daha fazla"].map((label) => (
           <li key={label} className="flex-1">
             <div className="flex min-h-14 flex-col items-center justify-center gap-1 text-xs font-medium text-neutral-300">
               <div className="size-5 rounded bg-neutral-200/80" />

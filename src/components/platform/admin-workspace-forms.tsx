@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useMemo, useState } from "react";
 import {
   activateWorkspaceAction,
   extendTrial15Action,
@@ -9,7 +9,11 @@ import {
 import { Button } from "@/components/ui/button";
 import type { AdminWorkspaceRow } from "@/lib/data/admin-workspace-types";
 import { formatIstanbulDate } from "@/lib/format/date";
-import { tradeKindLabel } from "@/lib/trade/kinds";
+import {
+  TRADE_KINDS,
+  TRADE_KIND_LABELS,
+  tradeKindLabel,
+} from "@/lib/trade/kinds";
 
 const initial: AdminActionState = { error: null };
 
@@ -149,14 +153,38 @@ function WorkspaceAdminCard({ row }: { row: AdminWorkspaceRow }) {
 }
 
 export function AdminWorkspaceList({ rows }: { rows: AdminWorkspaceRow[] }) {
+  const [filter, setFilter] = useState<string>("all");
+  const filtered = useMemo(() => {
+    if (filter === "all") return rows;
+    return rows.filter((r) => r.tradeKind === filter);
+  }, [rows, filter]);
+
   if (rows.length === 0) {
     return <p className="text-sm text-neutral-400">Workspace yok.</p>;
   }
+
   return (
-    <ul className="flex flex-col gap-3">
-      {rows.map((row) => (
-        <WorkspaceAdminCard key={row.id} row={row} />
-      ))}
-    </ul>
+    <div className="flex flex-col gap-3">
+      <label className="flex flex-col gap-1 text-sm">
+        <span className="text-neutral-500">Branş filtresi</span>
+        <select
+          className="h-10 rounded-lg border border-neutral-200 bg-white px-3"
+          value={filter}
+          onChange={(e) => setFilter(e.target.value)}
+        >
+          <option value="all">Tümü</option>
+          {TRADE_KINDS.map((k) => (
+            <option key={k} value={k}>
+              {TRADE_KIND_LABELS[k]}
+            </option>
+          ))}
+        </select>
+      </label>
+      <ul className="flex flex-col gap-3">
+        {filtered.map((row) => (
+          <WorkspaceAdminCard key={row.id} row={row} />
+        ))}
+      </ul>
+    </div>
   );
 }

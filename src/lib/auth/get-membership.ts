@@ -6,6 +6,7 @@ import type { AppUser, Membership, SessionContext, Workspace } from "@/lib/auth/
 import { getStaffContext, type StaffContext } from "@/lib/auth/staff-session";
 import { parsePlatformAdminEmails } from "@/lib/supabase/env";
 import { createServerSupabase } from "@/lib/supabase/server";
+import { isTradeKind, type TradeKind } from "@/lib/trade/kinds";
 
 export const getAuthUser = cache(async () => {
   const supabase = await createServerSupabase();
@@ -47,16 +48,19 @@ export const getSessionContext = cache(async (): Promise<SessionContext | null> 
 
   const { data: workspace, error: workspaceError } = await supabase
     .from("workspaces")
-    .select("id, name, slug, type, plan, settings, is_suspended, trial_ends_at")
+    .select(
+      "id, name, slug, type, plan, settings, is_suspended, trial_ends_at, trade_kind",
+    )
     .eq("id", membership.workspace_id)
     .maybeSingle();
 
   if (workspaceError) {
-    // Pre-009 schemas may lack is_suspended / trial_ends_at
+    // Pre-009 schemas may lack is_suspended / trial_ends_at / trade_kind
     const msg = (workspaceError.message ?? "").toLowerCase();
     if (
       msg.includes("is_suspended") ||
       msg.includes("trial_ends_at") ||
+      msg.includes("trade_kind") ||
       msg.includes("column")
     ) {
       const fallback = await supabase
@@ -70,6 +74,7 @@ export const getSessionContext = cache(async (): Promise<SessionContext | null> 
         ...fallback.data,
         is_suspended: false,
         trial_ends_at: null,
+        trade_kind: "tamir",
       });
     }
     throw workspaceError;
@@ -84,6 +89,10 @@ export const getSessionContext = cache(async (): Promise<SessionContext | null> 
   );
 });
 
+function parseTradeKind(raw: unknown): TradeKind {
+  return typeof raw === "string" && isTradeKind(raw) ? raw : "tamir";
+}
+
 function buildSession(
   authEmail: string | null,
   appUser: AppUser,
@@ -97,6 +106,7 @@ function buildSession(
     settings: unknown;
     is_suspended?: boolean | null;
     trial_ends_at?: string | null;
+    trade_kind?: string | null;
   },
 ): SessionContext {
   const rawSettings =
@@ -127,6 +137,7 @@ function buildSession(
       settings,
       isSuspended: Boolean(workspace.is_suspended),
       trialEndsAt: workspace.trial_ends_at ?? null,
+      tradeKind: parseTradeKind(workspace.trade_kind),
     },
   };
 }
@@ -157,6 +168,7 @@ function staffAsSession(staff: StaffContext): SessionContext {
       settings: {},
       isSuspended: staff.isSuspended,
       trialEndsAt: null,
+      tradeKind: "tamir",
     },
   };
 }

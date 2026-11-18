@@ -9,6 +9,7 @@ import { formatMoney } from "@/lib/format/money";
 import { truncateComplaint } from "@/lib/format/wait-label";
 import type { TeamMember } from "@/lib/data/ops";
 import { statusForBoardDrop } from "@/lib/work-orders/board-drop";
+import { workOrderLabel } from "@/lib/work-orders/display";
 import type { BoardCard } from "@/lib/work-orders/types";
 import {
   OPEN_STATUSES,
@@ -170,8 +171,14 @@ export function BoardColumns({
                     >
                       <div className="flex items-start justify-between gap-2">
                         <Link href={`/jobs/${card.id}`} className="min-w-0">
-                          <p className="font-mono text-lg tracking-wide">
-                            {card.plate}
+                          <p
+                            className={
+                              card.counterTitle
+                                ? "text-lg font-medium tracking-normal"
+                                : "font-mono text-lg tracking-wide"
+                            }
+                          >
+                            {workOrderLabel(card)}
                           </p>
                           {card.displayNo ? (
                             <p className="font-mono text-xs text-neutral-500">

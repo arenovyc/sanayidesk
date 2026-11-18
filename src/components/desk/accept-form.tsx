@@ -13,9 +13,11 @@ const initial: JobActionState = { error: null };
 
 export function AcceptForm({
   defaultPlate = "",
+  defaultComplaint = "",
   extraFields = false,
 }: {
   defaultPlate?: string;
+  defaultComplaint?: string;
   extraFields?: boolean;
 }) {
   const [state, action, pending] = useActionState(acceptWorkOrderAction, initial);
@@ -57,6 +59,7 @@ export function AcceptForm({
             <textarea
               id="complaint"
               name="complaint"
+              defaultValue={defaultComplaint}
               rows={3}
               className="w-full rounded-lg border border-neutral-200 bg-white px-3 py-2 text-base text-neutral-950 outline-none placeholder:text-neutral-400 focus:border-neutral-950 focus:ring-2 focus:ring-neutral-950/10"
             />

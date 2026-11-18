@@ -56,6 +56,7 @@ type WorkOrderQuery = {
   closed_at: string | null;
   display_no: string | null;
   remind_at?: string | null;
+  counter_title?: string | null;
   vehicle: Nested<VehicleEmbed>;
   customer: Nested<CustomerEmbed>;
 };
@@ -71,8 +72,10 @@ function asStatus(value: string): WorkOrderStatus | null {
 
 function toRow(row: WorkOrderQuery): WorkOrderRow | null {
   const status = asStatus(row.status);
+  if (!status) return null;
   const vehicle = one(row.vehicle);
-  if (!status || !vehicle) return null;
+  const counterTitle = row.counter_title?.trim() || null;
+  if (!vehicle && !counterTitle) return null;
   const customer = one(row.customer);
   const name = customer?.full_name.trim() || null;
   const phone = customer?.phone || null;
@@ -82,9 +85,10 @@ function toRow(row: WorkOrderQuery): WorkOrderRow | null {
     complaint: row.complaint,
     openedAt: row.opened_at,
     closedAt: row.closed_at,
-    plate: displayPlate(vehicle.plate_normalized),
+    plate: vehicle ? displayPlate(vehicle.plate_normalized) : "",
+    counterTitle,
     displayNo: row.display_no,
-    makeModel: vehicle.make_model?.trim() || null,
+    makeModel: vehicle?.make_model?.trim() || null,
     customerId: customer?.id ?? null,
     customerName: name,
     customerPhone: phone,
@@ -100,6 +104,7 @@ const WORK_ORDER_SELECT = `
   closed_at,
   display_no,
   remind_at,
+  counter_title,
   vehicle:vehicles(id, plate_normalized, make_model),
   customer:customers(id, full_name, phone)
 `;
@@ -121,6 +126,7 @@ const WORK_ORDER_SELECT_NO_MAKE = `
   opened_at,
   closed_at,
   display_no,
+  counter_title,
   vehicle:vehicles(id, plate_normalized),
   customer:customers(id, full_name, phone)
 `;
@@ -132,6 +138,19 @@ const WORK_ORDER_SELECT_NO_REMIND = `
   opened_at,
   closed_at,
   display_no,
+  counter_title,
+  vehicle:vehicles(id, plate_normalized, make_model),
+  customer:customers(id, full_name, phone)
+`;
+
+const WORK_ORDER_SELECT_NO_COUNTER = `
+  id,
+  status,
+  complaint,
+  opened_at,
+  closed_at,
+  display_no,
+  remind_at,
   vehicle:vehicles(id, plate_normalized, make_model),
   customer:customers(id, full_name, phone)
 `;
@@ -156,7 +175,19 @@ export async function getTodayBoard(workspaceId: string): Promise<TodayBoard> {
     .in("status", [...OPEN_STATUSES])
     .order("opened_at", { ascending: false });
 
-  if (error && isMissingColumn(error, "display_no")) {
+  if (error && isMissingColumn(error, "counter_title")) {
+    const noCounter = await supabase
+      .from("work_orders")
+      .select(WORK_ORDER_SELECT_NO_COUNTER)
+      .eq("workspace_id", workspaceId)
+      .in("status", [...OPEN_STATUSES])
+      .order("opened_at", { ascending: false });
+    data = (noCounter.data ?? []).map((row) => ({
+      ...row,
+      counter_title: null,
+    })) as typeof data;
+    error = noCounter.error;
+  } else if (error && isMissingColumn(error, "display_no")) {
     const legacy = await supabase
       .from("work_orders")
       .select(WORK_ORDER_SELECT_LEGACY)
@@ -166,6 +197,7 @@ export async function getTodayBoard(workspaceId: string): Promise<TodayBoard> {
     data = (legacy.data ?? []).map((row) => ({
       ...row,
       display_no: null,
+      counter_title: null,
     })) as typeof data;
     error = legacy.error;
   } else if (error && isMissingColumn(error, "remind_at")) {

@@ -59,6 +59,47 @@ export function waPartsVendorMessage(input: {
     .join("\n");
 }
 
+/** Plakasız / tezgâh komşu sorusu */
+export function waNeighborPartAskMessage(input: {
+  shopName: string;
+  askText: string;
+  shopPhone?: string | null;
+}): string {
+  return [
+    `${input.shopName} — parça / stok sorusu`,
+    input.askText,
+    input.shopPhone ? `Tel ${input.shopPhone}` : null,
+    "Uygunsa fiyat ve stok yazar mısın?",
+  ]
+    .filter(Boolean)
+    .join("\n");
+}
+
+export function waNeighborJobReferMessage(input: {
+  shopName: string;
+  summary: string;
+  plate?: string | null;
+  shopPhone?: string | null;
+}): string {
+  return [
+    `${input.shopName} — iş paslama`,
+    input.plate ? `Plaka ${input.plate}` : null,
+    input.summary,
+    input.shopPhone ? `Tel ${input.shopPhone}` : null,
+    "Uygunsa yaz, konuşalım.",
+  ]
+    .filter(Boolean)
+    .join("\n");
+}
+
+export function waMeUrl(phoneDigits: string, text: string): string | null {
+  let digits = phoneDigits.replace(/\D/g, "");
+  if (digits.startsWith("0")) digits = `90${digits.slice(1)}`;
+  if (digits.length === 10) digits = `90${digits}`;
+  if (!digits.startsWith("90") || digits.length < 12) return null;
+  return `https://wa.me/${digits}?text=${encodeURIComponent(text)}`;
+}
+
 export function waMaintenanceReminderMessage(input: {
   shopName: string;
   plate: string;

@@ -41,8 +41,9 @@ export function HomeContent({
             </h1>
             <p className="mt-5 max-w-lg text-base leading-7 text-zinc-400">
               Tamir, kaporta, elektrik, lastik, yedek parça ve torna atölyeleri
-              için — plaka kabul, WhatsApp onay, usta takibi, stok ve veresiye
-              tek yerde. Kurulum yok, muhasebe karmaşası yok.
+              için — plaka veya tezgâh, usta takibi, stok, veresiye ve Komşular
+              ile parça/iş köprüsü tek yerde. Kurulum yok, muhasebe karmaşası
+              yok.
             </p>
 
             <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">
