@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { Logo } from "@/components/brand/logo";
 import { LogoutButton } from "@/components/logout-button";
 import { DeskBell } from "@/components/shells/desk-bell";
@@ -9,11 +10,13 @@ export function TopBar({
   logoutMode = "desk",
   notificationCounts,
   notificationsMissing,
+  showPlatformAdmin = false,
 }: {
   shopName: string;
   logoutMode?: "desk" | "staff";
   notificationCounts?: DeskNotificationCounts;
   notificationsMissing?: boolean;
+  showPlatformAdmin?: boolean;
 }) {
   return (
     <header className="flex items-center justify-between gap-3 border-b border-neutral-200 bg-white px-4 py-3 pt-[max(0.75rem,env(safe-area-inset-top))] print:hidden">
@@ -25,6 +28,14 @@ export function TopBar({
         </div>
       </div>
       <div className="flex items-center gap-1">
+        {showPlatformAdmin ? (
+          <Link
+            href="/admin"
+            className="mr-1 rounded-lg px-2 py-1.5 text-xs font-medium text-neutral-600 hover:bg-neutral-100 hover:text-neutral-950"
+          >
+            Platform
+          </Link>
+        ) : null}
         {logoutMode === "desk" && notificationCounts ? (
           <DeskBell
             counts={notificationCounts}

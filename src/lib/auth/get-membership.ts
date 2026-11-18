@@ -225,8 +225,8 @@ export async function requirePlatformAdmin() {
   const authUser = await getAuthUser();
   if (!authUser) redirect("/login");
   if (!isPlatformAdminEmail(authUser.email ?? null)) {
-    const ctx = await getSessionContext();
-    redirect(ctx ? homeForRole(ctx.membership.role) : "/today");
+    // Stay on /admin so the page can explain dual roles vs silent /today bounce.
+    redirect("/admin");
   }
   return authUser;
 }

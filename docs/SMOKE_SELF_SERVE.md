@@ -1,6 +1,6 @@
 # Self-serve + canlı smoke (Facebook öncesi)
 
-Son koşu: **2026-11-18** (agent). Canlı: `https://sanayidesk.vercel.app`
+Son koşu: **2026-11-18T17:22Z** (agent). Canlı: `https://sanayidesk.vercel.app`
 
 ## Otomatik
 
@@ -8,7 +8,7 @@ Son koşu: **2026-11-18** (agent). Canlı: `https://sanayidesk.vercel.app`
 |------|--------|
 | `npm test` | **82/82 PASS** |
 | `npm run build` | Son push’larda yeşil |
-| `node --env-file=.env.local scripts/smoke-run.mjs` | API/DB A1–A6, B1–B6, B8–B9 **PASS**. A7/B7 HTTP yalnızca **çalışan** `NEXT_PUBLIC_SITE_URL` ister (localhost kapalıysa 404 FAIL — ürün bug’ı değil) |
+| `NEXT_PUBLIC_SITE_URL=https://sanayidesk.vercel.app node --env-file=.env.local scripts/smoke-run.mjs` | **A1–A7, B1–B9 = 16/16 PASS** (canlı BASE) |
 
 Canlı HTTP (curl):
 

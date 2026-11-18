@@ -2,7 +2,10 @@ import { Suspense } from "react";
 import { ViewTransition } from "react";
 import { BottomNav } from "@/components/shells/bottom-nav";
 import { TopBar } from "@/components/shells/top-bar";
-import { requireDeskSession } from "@/lib/auth/get-membership";
+import {
+  isPlatformAdminEmail,
+  requireDeskSession,
+} from "@/lib/auth/get-membership";
 import { getDeskNotificationCounts } from "@/lib/data/notifications";
 
 function TopBarFallback() {
@@ -48,6 +51,7 @@ async function DeskTopBar() {
       shopName={ctx.workspace.name}
       notificationCounts={counts}
       notificationsMissing={schemaMissing}
+      showPlatformAdmin={isPlatformAdminEmail(ctx.authEmail)}
     />
   );
 }
