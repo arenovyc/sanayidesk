@@ -1,12 +1,17 @@
 "use client";
 
 import Link from "next/link";
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
 import { registerAction, type AuthActionState } from "@/app/(auth)/actions";
 import { GoogleAuthButton } from "@/components/auth/google-auth-button";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  TRADE_KINDS,
+  TRADE_KIND_LABELS,
+  type TradeKind,
+} from "@/lib/trade/kinds";
 
 const initial: AuthActionState = { error: null };
 
@@ -20,6 +25,7 @@ export function RegisterForm({
   oauthMode?: boolean;
 }) {
   const [state, action, pending] = useActionState(registerAction, initial);
+  const [tradeKind, setTradeKind] = useState<TradeKind>("tamir");
 
   return (
     <div className="flex flex-col gap-4">
@@ -28,6 +34,31 @@ export function RegisterForm({
       </p>
 
       <form action={action} className="flex flex-col gap-4">
+        <div className="flex flex-col gap-2">
+          <Label>Dükkan türü</Label>
+          <input type="hidden" name="tradeKind" value={tradeKind} />
+          <div className="flex flex-wrap gap-2" role="radiogroup" aria-label="Dükkan türü">
+            {TRADE_KINDS.map((kind) => {
+              const selected = tradeKind === kind;
+              return (
+                <button
+                  key={kind}
+                  type="button"
+                  role="radio"
+                  aria-checked={selected}
+                  onClick={() => setTradeKind(kind)}
+                  className={
+                    selected
+                      ? "rounded-full border border-neutral-950 bg-neutral-950 px-3 py-1.5 text-xs font-medium text-white"
+                      : "rounded-full border border-neutral-200 bg-white px-3 py-1.5 text-xs font-medium text-neutral-700 hover:border-neutral-400"
+                  }
+                >
+                  {TRADE_KIND_LABELS[kind]}
+                </button>
+              );
+            })}
+          </div>
+        </div>
         <div className="flex flex-col gap-1.5">
           <Label htmlFor="shopName">Dükkan adı</Label>
           <Input

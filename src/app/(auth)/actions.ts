@@ -38,6 +38,7 @@ async function callRegisterShop(
     fullName: string;
     phone: string;
     cityDistrict: string;
+    tradeKind: string;
   },
 ): Promise<{ slug: string } | { error: string }> {
   for (let attempt = 0; attempt < 5; attempt += 1) {
@@ -48,6 +49,7 @@ async function callRegisterShop(
       _full_name: input.fullName,
       _owner_phone: input.phone,
       _city_district: input.cityDistrict,
+      _trade_kind: input.tradeKind,
     });
     if (!error) return { slug };
     if (error.message.toLowerCase().includes("slug_taken") && attempt < 4) {
@@ -64,6 +66,7 @@ function mapAuthError(message: string): string {
   if (text.includes("already_registered")) {
     return "Bu cihazda zaten bir dükkan hesabı açık. Çıkış yapıp yeni e-posta ile dene, veya Panele git.";
   }
+  if (text.includes("invalid_trade_kind")) return "Dükkan türü geçersiz";
   if (text.includes("invalid_slug")) return "Dükkan kodu geçersiz";
   if (text.includes("invalid login") || text.includes("invalid credentials")) {
     return "E-posta veya şifre yanlış.";
@@ -143,6 +146,7 @@ export async function registerAction(
       shopName: String(formData.get("shopName") ?? ""),
       cityDistrict: String(formData.get("cityDistrict") ?? ""),
       phone: String(formData.get("phone") ?? ""),
+      tradeKind: String(formData.get("tradeKind") ?? ""),
       email: emailRaw,
       password: passwordRaw,
     });
@@ -175,6 +179,7 @@ export async function registerAction(
       fullName: parsed.data.fullName,
       phone: parsed.data.phone,
       cityDistrict: parsed.data.cityDistrict,
+      tradeKind: parsed.data.tradeKind,
     });
     if ("error" in result) return { error: result.error };
 
@@ -191,6 +196,7 @@ export async function registerAction(
     shopName: String(formData.get("shopName") ?? ""),
     cityDistrict: String(formData.get("cityDistrict") ?? ""),
     phone: String(formData.get("phone") ?? ""),
+    tradeKind: String(formData.get("tradeKind") ?? ""),
   });
   if (!parsed.success) {
     return { error: firstZodError(parsed.error) };
@@ -204,7 +210,13 @@ export async function registerAction(
     };
   }
 
-  const result = await callRegisterShop(supabase, parsed.data);
+  const result = await callRegisterShop(supabase, {
+    shopName: parsed.data.shopName,
+    fullName: parsed.data.fullName,
+    phone: parsed.data.phone,
+    cityDistrict: parsed.data.cityDistrict,
+    tradeKind: parsed.data.tradeKind,
+  });
   if ("error" in result) return { error: result.error };
   redirect(`/today?shopCode=${encodeURIComponent(result.slug)}`);
 }

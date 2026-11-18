@@ -22,7 +22,7 @@ export async function listAdminWorkspaces(): Promise<{
   const { data, error } = await admin
     .from("workspaces")
     .select(
-      "id, name, slug, plan, is_suspended, trial_ends_at, created_at, city_district",
+      "id, name, slug, plan, is_suspended, trial_ends_at, created_at, city_district, trade_kind",
     )
     .order("created_at", { ascending: false })
     .limit(200);
@@ -32,7 +32,8 @@ export async function listAdminWorkspaces(): Promise<{
     if (
       msg.includes("is_suspended") ||
       msg.includes("trial_ends_at") ||
-      msg.includes("city_district")
+      msg.includes("city_district") ||
+      msg.includes("trade_kind")
     ) {
       const legacy = await admin
         .from("workspaces")
@@ -51,6 +52,7 @@ export async function listAdminWorkspaces(): Promise<{
           trialEndsAt: null,
           createdAt: row.created_at,
           cityDistrict: null,
+          tradeKind: "tamir",
           ownerName: null,
           ownerPhone: null,
           workOrderCount: 0,
@@ -138,6 +140,8 @@ export async function listAdminWorkspaces(): Promise<{
         createdAt: row.created_at,
         cityDistrict:
           (row as { city_district?: string | null }).city_district ?? null,
+        tradeKind:
+          (row as { trade_kind?: string | null }).trade_kind ?? "tamir",
         ownerName: owner?.name ?? null,
         ownerPhone: owner?.phone ?? null,
         workOrderCount: woCountByWs.get(row.id) ?? 0,

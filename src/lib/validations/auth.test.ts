@@ -28,12 +28,13 @@ test("loginSchema requires email and password", () => {
   );
 });
 
-test("registerSchema requires shop fields, phone, and 8-char password", () => {
+test("registerSchema requires shop fields, phone, tradeKind, and 8-char password", () => {
   const ok = registerSchema.safeParse({
     fullName: "Aren Yılmaz",
     shopName: "Öztürk Oto",
     cityDistrict: "Ankara / Ostim",
     phone: "05321234567",
+    tradeKind: "tamir",
     email: "a@b.com",
     password: "12345678",
   });
@@ -44,6 +45,7 @@ test("registerSchema requires shop fields, phone, and 8-char password", () => {
     shopName: "Test",
     cityDistrict: "Ankara",
     phone: "05321234567",
+    tradeKind: "kaporta",
     email: "a@b.com",
     password: "123",
   });
@@ -54,10 +56,22 @@ test("registerSchema requires shop fields, phone, and 8-char password", () => {
     shopName: "Test",
     cityDistrict: "Ankara",
     phone: "123",
+    tradeKind: "tamir",
     email: "a@b.com",
     password: "12345678",
   });
   assert.equal(noPhone.success, false);
+
+  const badTrade = registerSchema.safeParse({
+    fullName: "Aren",
+    shopName: "Test",
+    cityDistrict: "Ankara",
+    phone: "05321234567",
+    tradeKind: "muhasebe",
+    email: "a@b.com",
+    password: "12345678",
+  });
+  assert.equal(badTrade.success, false);
 });
 
 test("oauthRegisterSchema does not require email or password", () => {
@@ -66,6 +80,7 @@ test("oauthRegisterSchema does not require email or password", () => {
     shopName: "Öztürk Oto",
     cityDistrict: "Ankara / Ostim",
     phone: "0532 123 45 67",
+    tradeKind: "parca",
   });
   assert.equal(ok.success, true);
 });

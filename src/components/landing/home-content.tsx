@@ -34,14 +34,15 @@ export function HomeContent({
         <section className="grid items-center gap-10 lg:grid-cols-2 lg:gap-12">
           <div>
             <p className="text-xs font-semibold tracking-[0.2em] text-amber-400/90">
-              OTO TAMİR VE ÖZEL SERVİSLER İÇİN
+              OTO SANAYİ ESNAFI İÇİN
             </p>
             <h1 className="mt-4 text-4xl font-semibold leading-tight tracking-tight text-white md:text-[2.75rem] md:leading-[1.15]">
               Sanayideki dükkanını telefondan yönet.
             </h1>
             <p className="mt-5 max-w-lg text-base leading-7 text-zinc-400">
-              Plaka kabul, fotoğraflı WhatsApp fiyat onayı, usta takibi ve
-              veresiye defteri tek yerde. Kurulum yok, muhasebe karmaşası yok.
+              Tamir, kaporta, elektrik, lastik, yedek parça ve torna atölyeleri
+              için — plaka kabul, WhatsApp onay, usta takibi, stok ve veresiye
+              tek yerde. Kurulum yok, muhasebe karmaşası yok.
             </p>
 
             <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">

@@ -9,6 +9,7 @@ import {
 import { Button } from "@/components/ui/button";
 import type { AdminWorkspaceRow } from "@/lib/data/admin-workspace-types";
 import { formatIstanbulDate } from "@/lib/format/date";
+import { tradeKindLabel } from "@/lib/trade/kinds";
 
 const initial: AdminActionState = { error: null };
 
@@ -52,15 +53,20 @@ function WorkspaceAdminCard({ row }: { row: AdminWorkspaceRow }) {
             <p className="mt-1 text-sm text-neutral-600">{row.cityDistrict}</p>
           ) : null}
         </div>
-        {row.isSuspended ? (
-          <span className="rounded-full bg-red-100 px-2 py-0.5 text-xs font-medium text-red-800">
-            Askıda
+        <div className="flex shrink-0 flex-col items-end gap-1">
+          <span className="rounded-full bg-neutral-100 px-2 py-0.5 text-xs font-medium text-neutral-700">
+            {tradeKindLabel(row.tradeKind)}
           </span>
-        ) : (
-          <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-medium text-emerald-800">
-            {row.plan === "active" ? "Aktif" : "Deneme"}
-          </span>
-        )}
+          {row.isSuspended ? (
+            <span className="rounded-full bg-red-100 px-2 py-0.5 text-xs font-medium text-red-800">
+              Askıda
+            </span>
+          ) : (
+            <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-medium text-emerald-800">
+              {row.plan === "active" ? "Aktif" : "Deneme"}
+            </span>
+          )}
+        </div>
       </div>
 
       <dl className="grid gap-1.5 text-sm text-neutral-700">

@@ -7,6 +7,7 @@ export type AdminWorkspaceRow = {
   trialEndsAt: string | null;
   createdAt: string;
   cityDistrict: string | null;
+  tradeKind: string;
   ownerName: string | null;
   ownerPhone: string | null;
   workOrderCount: number;

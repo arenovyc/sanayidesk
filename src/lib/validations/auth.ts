@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { TRADE_KINDS } from "@/lib/trade/kinds";
 
 export const loginSchema = z.object({
   email: z.email("E-posta geçersiz"),
@@ -13,11 +14,21 @@ const phoneSchema = z
   .max(20, "Telefon çok uzun")
   .refine((value) => value.replace(/\D/g, "").length >= 10, "Geçerli bir cep numarası gir");
 
+const tradeKindSchema = z
+  .string()
+  .trim()
+  .refine(
+    (value): value is (typeof TRADE_KINDS)[number] =>
+      (TRADE_KINDS as readonly string[]).includes(value),
+    "Dükkan türü seç",
+  );
+
 const shopFields = {
   fullName: z.string().trim().min(2, "Ad en az 2 karakter"),
   shopName: z.string().trim().min(2, "Dükkan adı gerekli"),
   cityDistrict: z.string().trim().min(2, "İl / İlçe gerekli"),
   phone: phoneSchema,
+  tradeKind: tradeKindSchema,
 };
 
 export const registerSchema = z.object({
