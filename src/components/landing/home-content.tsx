@@ -50,7 +50,9 @@ export function HomeContent({
                 size="lg"
                 className="bg-amber-500 text-zinc-950 hover:bg-amber-400 sm:shrink-0"
               >
-                <Link href="/register">{TRIAL_DAYS} Gün Ücretsiz Kullan</Link>
+                <Link href="/register/fresh">
+                  {TRIAL_DAYS} Gün Ücretsiz Kullan
+                </Link>
               </Button>
               <Button
                 asChild

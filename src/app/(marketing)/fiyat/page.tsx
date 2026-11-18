@@ -82,7 +82,7 @@ async function PricingBody() {
               size="lg"
               className="mt-6 w-full bg-amber-500 text-neutral-950 hover:bg-amber-400"
             >
-              <Link href="/register">{TRIAL_DAYS} gün ücretsiz başla</Link>
+              <Link href="/register/fresh">{TRIAL_DAYS} gün ücretsiz başla</Link>
             </Button>
           </section>
 
@@ -145,7 +145,7 @@ async function PricingBody() {
             size="lg"
             className="bg-amber-500 text-neutral-950 hover:bg-amber-400"
           >
-            <Link href="/register">Dükkanı ücretsiz aç</Link>
+            <Link href="/register/fresh">Dükkanı ücretsiz aç</Link>
           </Button>
           <Button asChild size="lg" variant="outline" className="border-neutral-700 text-neutral-100">
             <Link href="/">Ana sayfa</Link>

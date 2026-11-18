@@ -61,7 +61,9 @@ async function callRegisterShop(
 function mapAuthError(message: string): string {
   const text = message.toLowerCase();
   if (text.includes("slug_taken")) return "Bu dükkan kodu alınmış";
-  if (text.includes("already_registered")) return "Bu hesap zaten bir dükkana bağlı";
+  if (text.includes("already_registered")) {
+    return "Bu cihazda zaten bir dükkan hesabı açık. Çıkış yapıp yeni e-posta ile dene, veya Panele git.";
+  }
   if (text.includes("invalid_slug")) return "Dükkan kodu geçersiz";
   if (text.includes("invalid login") || text.includes("invalid credentials")) {
     return "E-posta veya şifre yanlış.";
@@ -121,66 +123,89 @@ export async function registerAction(
   const supabase = await createServerSupabase();
   if (!supabase) return { error: MISSING_SUPABASE_ENV };
 
+  const emailRaw = String(formData.get("email") ?? "").trim();
+  const passwordRaw = String(formData.get("password") ?? "");
+  const wantsEmailSignup = Boolean(emailRaw && passwordRaw);
+
   let {
     data: { user },
   } = await supabase.auth.getUser();
 
-  if (user) {
-    const parsed = oauthRegisterSchema.safeParse({
+  // E-posta + şifre ile yeni dükkan: önceki demo/oturumu temizle
+  if (wantsEmailSignup) {
+    if (user) {
+      await supabase.auth.signOut({ scope: "global" });
+      user = null;
+    }
+
+    const parsed = registerSchema.safeParse({
       fullName: String(formData.get("fullName") ?? ""),
       shopName: String(formData.get("shopName") ?? ""),
       cityDistrict: String(formData.get("cityDistrict") ?? ""),
       phone: String(formData.get("phone") ?? ""),
+      email: emailRaw,
+      password: passwordRaw,
     });
     if (!parsed.success) {
       return { error: firstZodError(parsed.error) };
     }
 
-    const result = await callRegisterShop(supabase, parsed.data);
+    const siteUrl = getSiteUrl();
+    const { data, error } = await supabase.auth.signUp({
+      email: parsed.data.email,
+      password: parsed.data.password,
+      options: {
+        data: { full_name: parsed.data.fullName },
+        emailRedirectTo: `${siteUrl}/auth/callback?next=/register`,
+      },
+    });
+    if (error) {
+      return { error: mapAuthError(error.message) };
+    }
+    user = data.user;
+    if (!data.session || !user) {
+      return {
+        error:
+          "Hesap oluştu ama oturum açılamadı. Supabase’te e-posta onayı kapalı olmalı; ardından giriş yap.",
+      };
+    }
+
+    const result = await callRegisterShop(supabase, {
+      shopName: parsed.data.shopName,
+      fullName: parsed.data.fullName,
+      phone: parsed.data.phone,
+      cityDistrict: parsed.data.cityDistrict,
+    });
     if ("error" in result) return { error: result.error };
+
     redirect(`/today?shopCode=${encodeURIComponent(result.slug)}`);
   }
 
-  const parsed = registerSchema.safeParse({
+  // Google / mevcut oturum ile dükkan tamamlama (e-posta alanı yok)
+  if (!user) {
+    return { error: "Oturum bulunamadı. Google ile devam et veya e-posta ile kayıt ol." };
+  }
+
+  const parsed = oauthRegisterSchema.safeParse({
     fullName: String(formData.get("fullName") ?? ""),
     shopName: String(formData.get("shopName") ?? ""),
     cityDistrict: String(formData.get("cityDistrict") ?? ""),
     phone: String(formData.get("phone") ?? ""),
-    email: String(formData.get("email") ?? ""),
-    password: String(formData.get("password") ?? ""),
   });
   if (!parsed.success) {
     return { error: firstZodError(parsed.error) };
   }
 
-  const siteUrl = getSiteUrl();
-  const { data, error } = await supabase.auth.signUp({
-    email: parsed.data.email,
-    password: parsed.data.password,
-    options: {
-      data: { full_name: parsed.data.fullName },
-      emailRedirectTo: `${siteUrl}/auth/callback?next=/register`,
-    },
-  });
-  if (error) {
-    return { error: mapAuthError(error.message) };
-  }
-  user = data.user;
-  if (!data.session || !user) {
+  const existing = await getSessionContext();
+  if (existing) {
     return {
       error:
-        "Hesap oluştu ama oturum açılamadı. Supabase’te e-posta onayı kapalı olmalı; ardından giriş yap.",
+        "Bu hesap zaten bir dükkana bağlı. Panele git, veya /register/fresh ile yeni hesap aç.",
     };
   }
 
-  const result = await callRegisterShop(supabase, {
-    shopName: parsed.data.shopName,
-    fullName: parsed.data.fullName,
-    phone: parsed.data.phone,
-    cityDistrict: parsed.data.cityDistrict,
-  });
+  const result = await callRegisterShop(supabase, parsed.data);
   if ("error" in result) return { error: result.error };
-
   redirect(`/today?shopCode=${encodeURIComponent(result.slug)}`);
 }
 

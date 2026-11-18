@@ -106,9 +106,26 @@ export function RegisterForm({
           </p>
         )}
         {state.error ? (
-          <p className="text-sm text-red-700" role="alert">
-            {state.error}
-          </p>
+          <div className="space-y-2" role="alert">
+            <p className="text-sm text-red-700">{state.error}</p>
+            {state.error.toLowerCase().includes("dükkan") ? (
+              <p className="text-xs text-neutral-500">
+                <Link
+                  href="/register/fresh"
+                  className="font-medium text-neutral-950 underline-offset-4 hover:underline"
+                >
+                  Oturumu temizle ve yeniden dene
+                </Link>
+                {" · "}
+                <Link
+                  href="/today"
+                  className="font-medium text-neutral-950 underline-offset-4 hover:underline"
+                >
+                  Panele git
+                </Link>
+              </p>
+            ) : null}
+          </div>
         ) : null}
         <Button type="submit" disabled={pending}>
           {pending ? "Açılıyor…" : "Dükkanı aç"}
