@@ -46,6 +46,11 @@ export function ShopCodeBanner({ shopCode }: { shopCode: string | undefined }) {
             Ustalarınızın PIN ile gireceği dükkan kodu:{" "}
             <span className="font-mono font-semibold tracking-wide">{shopCode}</span>
           </p>
+          <p className="mt-1 text-amber-900/80">
+            Listedeki <span className="font-mono">34 ORN 001</span> örnek
+            iştir — inceleyip silebilirsiniz. İlk kendi aracını plaka kutusundan
+            kabul et.
+          </p>
           <p className="mt-2">
             <Link
               href="/team"

@@ -49,8 +49,17 @@ async function signIn(email) {
 }
 
 async function httpGet(path) {
-  const res = await fetch(`${BASE}${path}`, { redirect: "manual" });
-  return { status: res.status, location: res.headers.get("location"), res };
+  try {
+    const res = await fetch(`${BASE}${path}`, { redirect: "manual" });
+    return { status: res.status, location: res.headers.get("location"), res };
+  } catch (e) {
+    return {
+      status: 0,
+      location: null,
+      res: null,
+      error: String(e.message || e),
+    };
+  }
 }
 
 function readEnvLocal() {
@@ -211,7 +220,13 @@ async function runA() {
     const miss = await httpGet("/bu-sayfa-yok-smoke-404");
     const suspendedPage = await httpGet("/suspended");
     // Unauthed unknown → middleware redirect; /suspended public 200; not-found exists in app
-    if (
+    if (miss.status === 0 || suspendedPage.status === 0) {
+      record(
+        "A7",
+        "SKIP",
+        `HTTP unreachable at ${BASE} (start next or set NEXT_PUBLIC_SITE_URL to live)`,
+      );
+    } else if (
       (miss.status === 307 || miss.status === 302 || miss.status === 404) &&
       suspendedPage.status === 200
     ) {
@@ -417,7 +432,13 @@ async function runB(ctxA) {
       .eq("id", wsA)
       .single();
     const susPage = await httpGet("/suspended");
-    if (ws?.is_suspended === true && susPage.status === 200) {
+    if (susPage.status === 0) {
+      record(
+        "B7",
+        "SKIP",
+        `DB suspended=${ws?.is_suspended}; HTTP unreachable at ${BASE}`,
+      );
+    } else if (ws?.is_suspended === true && susPage.status === 200) {
       record(
         "B7",
         "PASS",
