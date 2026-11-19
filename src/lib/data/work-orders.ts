@@ -4,7 +4,7 @@ import {
   listMoneyOpen,
 } from "@/lib/data/assignments";
 import { displayPlate, normalizePlate } from "@/lib/format/plate";
-import { waitLabel } from "@/lib/format/wait-label";
+import { waitBadgeLabel, waitLabel } from "@/lib/format/wait-label";
 import { matchesJobQuery, parseJobQuery } from "@/lib/search/job-query";
 import { createServerSupabase } from "@/lib/supabase/server";
 import { requestNowMs } from "@/lib/time/request-now";
@@ -295,6 +295,7 @@ export async function getStatusBoard(
       paid: totals.paid,
       remaining: totals.remaining,
       waitText: waitLabel(job.openedAt, renderedAtMs),
+      waitBadge: waitBadgeLabel(job.openedAt, renderedAtMs),
     });
   }
 

@@ -157,7 +157,8 @@ const PROFILES: Record<TradeKind, TradeProfile> = {
       customerNoun: "Müşteri",
       emptyToday: "Üstten plaka yaz, iş emri açılsın.",
       boardTitle: "Tahta",
-      boardDescription: "Sürükle = durum. Usta seçince kaydolur.",
+      boardDescription:
+        "Kartları sürükleyerek durumu değiştirin, usta seçimi otomatik kaydolur.",
     },
     statusLabels: {},
     nav: WORKSHOP_NAV,
@@ -207,7 +208,8 @@ const PROFILES: Record<TradeKind, TradeProfile> = {
       customerNoun: "Müşteri",
       emptyToday: "Plaka + foto ile ekspertiz başlat.",
       boardTitle: "Tahta",
-      boardDescription: "Onay ve fotoğraflı işler — sürükle ile durum.",
+      boardDescription:
+        "Kartları sürükleyerek durumu değiştirin, usta seçimi otomatik kaydolur.",
     },
     statusLabels: {
       waiting_approval: "Fiyat onayı",
@@ -260,7 +262,8 @@ const PROFILES: Record<TradeKind, TradeProfile> = {
       customerNoun: "Müşteri",
       emptyToday: "Plaka yaz, arıza notunu ekle.",
       boardTitle: "Tahta",
-      boardDescription: "Arıza ve klima işleri — durum sürükle.",
+      boardDescription:
+        "Kartları sürükleyerek durumu değiştirin, usta seçimi otomatik kaydolur.",
     },
     statusLabels: {},
     nav: WORKSHOP_NAV,

@@ -1,14 +1,17 @@
 "use client";
 
 import Link from "next/link";
-import { useState, useTransition } from "react";
+import { useMemo, useState, useTransition } from "react";
 import { setWorkOrderStatusAction } from "@/app/(desk)/jobs/actions";
 import { Button } from "@/components/ui/button";
 import { LicensePlateBadge } from "@/components/ui/license-plate-badge";
 import { Money } from "@/components/ui/money";
 import { Sheet } from "@/components/ui/sheet";
 import { formatMoney } from "@/lib/format/money";
-import { truncateComplaint } from "@/lib/format/wait-label";
+import {
+  shortDisplayNo,
+  truncateComplaint,
+} from "@/lib/format/wait-label";
 import type { TeamMember } from "@/lib/data/ops";
 import { statusLabelFor } from "@/lib/trade/profile";
 import { surfaceCard } from "@/lib/ui/surface";
@@ -35,6 +38,131 @@ type PendingDrop = {
   remaining: number;
 };
 
+function BoardCardBody({
+  card,
+  returnTo,
+  columnStatus,
+}: {
+  card: BoardCard;
+  returnTo: string;
+  columnStatus: OpenWorkOrderStatus;
+}) {
+  const title = shortDisplayNo(card.displayNo);
+  const complaint = truncateComplaint(card.complaint, 80);
+  const hasMoney = card.due > 0 || card.remaining > 0;
+  const waitNeutral = columnStatus === "ready";
+
+  return (
+    <Link
+      href={`/jobs/${card.id}?from=${encodeURIComponent(returnTo)}`}
+      prefetch
+      className="flex min-w-0 flex-col gap-1.5"
+    >
+      <div className="flex items-start justify-between gap-2">
+        <div className="min-w-0">
+          {card.counterTitle || !card.plate ? (
+            <p className="truncate text-sm font-semibold tracking-tight text-neutral-950">
+              {workOrderLabel(card)}
+            </p>
+          ) : (
+            <LicensePlateBadge plate={card.plate} size="sm" />
+          )}
+        </div>
+        <div className="flex shrink-0 flex-col items-end gap-1">
+          {title ? (
+            <span className="font-mono text-[11px] tabular-nums text-neutral-400">
+              {title}
+            </span>
+          ) : null}
+          {card.waitBadge ? (
+            <span
+              className={cn(
+                "rounded-md px-1.5 py-0.5 text-[10px] font-medium tabular-nums",
+                waitNeutral
+                  ? "bg-neutral-100 text-neutral-500"
+                  : "bg-amber-50 text-amber-800",
+              )}
+              title={card.waitText}
+            >
+              {card.waitBadge}
+            </span>
+          ) : null}
+        </div>
+      </div>
+
+      {card.makeModel ? (
+        <p className="truncate text-sm font-semibold text-neutral-950">
+          {card.makeModel}
+        </p>
+      ) : null}
+      {complaint ? (
+        <p className="line-clamp-2 text-xs text-neutral-600">{complaint}</p>
+      ) : null}
+
+      {hasMoney ? (
+        <div className="mt-0.5 flex items-end justify-between gap-2">
+          <div className="min-w-0">
+            {card.assigneeName ? (
+              <p className="truncate text-xs text-neutral-500">
+                {card.assigneeName}
+              </p>
+            ) : (
+              <span className="inline-flex rounded-md bg-amber-50 px-1.5 py-0.5 text-[10px] font-medium text-amber-800">
+                Usta atanmadı
+              </span>
+            )}
+          </div>
+          <p className="shrink-0 text-right text-xs text-neutral-600">
+            <Money amount={card.due} tone="muted" />
+            {card.remaining > 0 ? (
+              <>
+                {" · "}
+                <Money amount={card.remaining} tone="debt" />
+              </>
+            ) : null}
+          </p>
+        </div>
+      ) : (
+        <div className="mt-0.5 flex items-center justify-between gap-2">
+          {card.assigneeName ? (
+            <p className="truncate text-xs text-neutral-500">
+              {card.assigneeName}
+            </p>
+          ) : (
+            <span className="inline-flex rounded-md bg-amber-50 px-1.5 py-0.5 text-[10px] font-medium text-amber-800">
+              Usta atanmadı
+            </span>
+          )}
+          <p className="shrink-0 text-[11px] text-neutral-400">Fiyat girilmedi</p>
+        </div>
+      )}
+    </Link>
+  );
+}
+
+function ColumnHeader({
+  status,
+  count,
+  tradeKind,
+}: {
+  status: OpenWorkOrderStatus;
+  count: number;
+  tradeKind?: string | null;
+}) {
+  return (
+    <div className="flex items-baseline justify-between gap-2 px-0.5">
+      <h2 className="flex items-center gap-2 text-sm font-medium text-neutral-700">
+        <span
+          className={cn("h-1.5 w-6 rounded-full", statusTone(status).bar)}
+          aria-hidden
+        />
+        {statusLabelFor(tradeKind, status)}
+      </h2>
+      <span className="text-xs tabular-nums text-neutral-400">{count}</span>
+    </div>
+  );
+}
+
 export function BoardColumns({
   columns,
   mechanics: _mechanics,
@@ -51,7 +179,20 @@ export function BoardColumns({
   const [pending, startTransition] = useTransition();
   const [confirmDrop, setConfirmDrop] = useState<PendingDrop | null>(null);
 
-  const visible = highlightStatus
+  const defaultMobile = useMemo(() => {
+    if (highlightStatus) return highlightStatus;
+    const firstFilled = OPEN_STATUSES.find(
+      (status) => columns[status].length > 0,
+    );
+    return firstFilled ?? "intake";
+  }, [columns, highlightStatus]);
+
+  const [mobileStatus, setMobileStatus] =
+    useState<OpenWorkOrderStatus>(defaultMobile);
+
+  const activeMobile = highlightStatus ?? mobileStatus;
+
+  const desktopStatuses = highlightStatus
     ? OPEN_STATUSES.filter((status) => status === highlightStatus)
     : OPEN_STATUSES;
 
@@ -91,6 +232,44 @@ export function BoardColumns({
       return;
     }
     applyStatus(payload.id, next);
+  }
+
+  function renderCardList(status: OpenWorkOrderStatus, cards: BoardCard[]) {
+    if (cards.length === 0) {
+      return (
+        <p className="rounded-xl border border-dashed border-neutral-200 bg-white px-3 py-6 text-center text-sm text-neutral-400">
+          Boş
+        </p>
+      );
+    }
+    return (
+      <ul className="flex flex-col gap-2">
+        {cards.map((card) => (
+          <li
+            key={card.id}
+            draggable={!pending}
+            onDragStart={(event) => {
+              event.dataTransfer.setData(
+                "application/sanayidesk-card",
+                JSON.stringify({
+                  id: card.id,
+                  status: card.status,
+                  remaining: card.remaining,
+                } satisfies DropPayload),
+              );
+              event.dataTransfer.effectAllowed = "move";
+            }}
+            className={cn(surfaceCard, "p-3 active:cursor-grabbing")}
+          >
+            <BoardCardBody
+              card={card}
+              returnTo={returnTo}
+              columnStatus={status}
+            />
+          </li>
+        ))}
+      </ul>
+    );
   }
 
   return (
@@ -134,8 +313,63 @@ export function BoardColumns({
         ) : null}
       </Sheet>
 
-      <div className="-mx-4 flex gap-3 overflow-x-auto px-4 pb-2 lg:mx-0 lg:gap-2.5 lg:overflow-x-visible lg:px-0 xl:gap-3">
-        {visible.map((status) => {
+      {/* Mobile: status chips + single column */}
+      <div className="flex flex-col gap-3 md:hidden">
+        {!highlightStatus ? (
+          <div
+            role="tablist"
+            aria-label="Durum filtresi"
+            className="-mx-4 flex gap-1.5 overflow-x-auto px-4 pb-1"
+          >
+            {OPEN_STATUSES.map((status) => {
+              const active = activeMobile === status;
+              const count = columns[status].length;
+              return (
+                <button
+                  key={status}
+                  type="button"
+                  role="tab"
+                  aria-selected={active}
+                  onClick={() => setMobileStatus(status)}
+                  className={cn(
+                    "inline-flex min-h-9 shrink-0 items-center gap-1.5 rounded-full border px-3 text-xs font-medium",
+                    active
+                      ? "border-neutral-950 bg-neutral-950 text-white"
+                      : "border-neutral-200 bg-white text-neutral-700",
+                  )}
+                >
+                  <span
+                    className={cn(
+                      "size-1.5 rounded-full",
+                      active ? "bg-white/80" : statusTone(status).bar,
+                    )}
+                    aria-hidden
+                  />
+                  {statusLabelFor(tradeKind, status)}
+                  <span
+                    className={cn(
+                      "tabular-nums",
+                      active ? "text-white/70" : "text-neutral-400",
+                    )}
+                  >
+                    {count}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        ) : null}
+        <ColumnHeader
+          status={activeMobile}
+          count={columns[activeMobile].length}
+          tradeKind={tradeKind}
+        />
+        {renderCardList(activeMobile, columns[activeMobile])}
+      </div>
+
+      {/* Desktop / tablet: kanban columns */}
+      <div className="-mx-4 hidden gap-3 overflow-x-auto px-4 pb-2 md:flex lg:mx-0 lg:gap-2.5 lg:overflow-x-visible lg:px-0 xl:gap-3">
+        {desktopStatuses.map((status) => {
           const cards = columns[status];
           return (
             <section
@@ -151,86 +385,12 @@ export function BoardColumns({
                 handleDrop(status, raw);
               }}
             >
-              <div className="flex items-baseline justify-between gap-2 px-0.5">
-                <h2 className="flex items-center gap-2 text-sm font-medium text-neutral-700">
-                  <span
-                    className={cn("h-1.5 w-6 rounded-full", statusTone(status).bar)}
-                    aria-hidden
-                  />
-                  {statusLabelFor(tradeKind, status)}
-                </h2>
-                <span className="text-xs tabular-nums text-neutral-400">
-                  {cards.length}
-                </span>
-              </div>
-              {cards.length === 0 ? (
-                <p className="rounded-xl border border-dashed border-neutral-200 bg-white px-3 py-6 text-center text-sm text-neutral-400">
-                  Boş
-                </p>
-              ) : (
-                <ul className="flex flex-col gap-2">
-                  {cards.map((card) => (
-                    <li
-                      key={card.id}
-                      draggable={!pending}
-                      onDragStart={(event) => {
-                        event.dataTransfer.setData(
-                          "application/sanayidesk-card",
-                          JSON.stringify({
-                            id: card.id,
-                            status: card.status,
-                            remaining: card.remaining,
-                          } satisfies DropPayload),
-                        );
-                        event.dataTransfer.effectAllowed = "move";
-                      }}
-                      className={cn(surfaceCard, "p-3 active:cursor-grabbing")}
-                    >
-                      <Link
-                        href={`/jobs/${card.id}?from=${encodeURIComponent(returnTo)}`}
-                        prefetch
-                        className="flex min-w-0 flex-col gap-1"
-                      >
-                        {card.counterTitle || !card.plate ? (
-                          <p className="text-base font-medium tracking-tight">
-                            {workOrderLabel(card)}
-                          </p>
-                        ) : (
-                          <LicensePlateBadge plate={card.plate} size="sm" />
-                        )}
-                        {card.displayNo ? (
-                          <p className="font-mono text-xs tabular-nums text-neutral-500">
-                            {card.displayNo}
-                          </p>
-                        ) : null}
-                        {card.makeModel ? (
-                          <p className="truncate text-xs font-medium text-neutral-700">
-                            {card.makeModel}
-                          </p>
-                        ) : null}
-                        {truncateComplaint(card.complaint) ? (
-                          <p className="text-xs text-neutral-500">
-                            {truncateComplaint(card.complaint)}
-                          </p>
-                        ) : null}
-                        <p className="text-xs text-amber-800/90">{card.waitText}</p>
-                        <p className="text-xs text-neutral-500">
-                          {card.assigneeName
-                            ? `Usta: ${card.assigneeName}`
-                            : "Usta atanmadı — işten ata"}
-                        </p>
-                        <p className="text-xs text-neutral-500">
-                          Toplam <Money amount={card.due} tone="muted" /> · Kalan{" "}
-                          <Money
-                            amount={card.remaining}
-                            tone={card.remaining > 0 ? "debt" : "paid"}
-                          />
-                        </p>
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
-              )}
+              <ColumnHeader
+                status={status}
+                count={cards.length}
+                tradeKind={tradeKind}
+              />
+              {renderCardList(status, cards)}
             </section>
           );
         })}

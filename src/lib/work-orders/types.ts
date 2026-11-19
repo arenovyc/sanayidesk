@@ -37,6 +37,8 @@ export type BoardCard = WorkOrderRow & {
   remaining: number;
   /** Frozen at board fetch so client hydrate matches SSR. */
   waitText: string;
+  /** Compact chip: `2s` / `5g` — same freeze as waitText. */
+  waitBadge: string;
 };
 
 export type StatusBoard = {
