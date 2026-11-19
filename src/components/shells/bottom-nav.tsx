@@ -46,7 +46,7 @@ export function BottomNav({ variant }: { variant: NavVariant }) {
             <li key={item.href} className="flex-1">
               <Link
                 href={item.href}
-                prefetch
+                prefetch={false}
                 scroll={false}
                 className={cn(
                   "flex min-h-14 flex-col items-center justify-center gap-1 text-xs font-medium transition-colors",

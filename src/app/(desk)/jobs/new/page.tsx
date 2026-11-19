@@ -1,6 +1,6 @@
 import { Suspense } from "react";
-import { PageSkeleton } from "@/components/ui/skeleton";
 import { AcceptForm } from "@/components/desk/accept-form";
+import { PageHeader } from "@/components/shells/page-header";
 import { requireDeskSession } from "@/lib/auth/get-membership";
 import { normalizePlate } from "@/lib/format/plate";
 
@@ -28,12 +28,12 @@ async function NewJobBody({
 
   return (
     <div className="flex flex-col gap-5">
-      <div>
-        <h1 className="text-xl font-semibold">Araç kabul</h1>
-        <p className="mt-1 text-sm text-neutral-500">
-          Plaka yeterli. Ad ve telefon sonra da eklenebilir.
-        </p>
-      </div>
+      <PageHeader
+        title="Araç kabul"
+        description="Plaka yeterli. Ad ve telefon sonra da eklenebilir."
+        backHref="/today"
+        backLabel="Bugün"
+      />
       <AcceptForm
         defaultPlate={plate}
         defaultComplaint={complaint}

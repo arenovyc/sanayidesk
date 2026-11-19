@@ -1,6 +1,6 @@
 import { Suspense } from "react";
-import { PageSkeleton } from "@/components/ui/skeleton";
 import Link from "next/link";
+import { PageHeader } from "@/components/shells/page-header";
 import { notFound } from "next/navigation";
 import { SharedPlatePanel } from "@/components/desk/shared-plate-panel";
 import { requireDeskSession } from "@/lib/auth/get-membership";
@@ -28,15 +28,13 @@ async function VehicleBody({ params }: { params: Promise<{ id: string }> }) {
 
   return (
     <div className="flex flex-col gap-4">
-      <div>
-        <p className="text-sm text-neutral-500">
-          <Link href="/vehicles" className="hover:underline">
-            Araçlar
-          </Link>
-        </p>
-        <h1 className="mt-1 font-mono text-2xl tracking-wide">{vehicle.plate}</h1>
-        <p className="mt-1 text-sm text-neutral-500">İş geçmişi (bu dükkan)</p>
-      </div>
+      <PageHeader
+        title={vehicle.plate}
+        titleClassName="mt-0.5 font-mono text-2xl font-semibold tracking-wide text-neutral-950"
+        description="İş geçmişi (bu dükkan)"
+        backHref="/vehicles"
+        backLabel="Araçlar"
+      />
 
       {vehicle.jobs.length === 0 ? (
         <p className="text-sm text-neutral-500">İş emri yok.</p>

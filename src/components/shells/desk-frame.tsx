@@ -1,5 +1,4 @@
 import { Suspense } from "react";
-import { ViewTransition } from "react";
 import { BottomNav } from "@/components/shells/bottom-nav";
 import { TopBar } from "@/components/shells/top-bar";
 import {
@@ -68,9 +67,7 @@ export function DeskFrame({ children }: { children: React.ReactNode }) {
         <DeskTopBar />
       </Suspense>
       <main className="mx-auto flex w-full max-w-lg flex-1 flex-col px-4 pb-[calc(6rem+env(safe-area-inset-bottom))] pt-4 md:max-w-5xl lg:max-w-7xl">
-        <ViewTransition enter="auto" exit="auto">
-          {children}
-        </ViewTransition>
+        {children}
       </main>
       <Suspense fallback={<BottomNavFallback />}>
         <BottomNav variant="desk" />

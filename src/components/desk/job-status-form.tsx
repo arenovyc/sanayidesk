@@ -19,10 +19,13 @@ export function JobStatusForm({
   id,
   status,
   remaining = 0,
+  returnToOnCancel = "/today",
 }: {
   id: string;
   status: WorkOrderStatus;
   remaining?: number;
+  /** İş iptal edilince yönlendirme (varsayılan Bugün). */
+  returnToOnCancel?: string;
 }) {
   const [state, action, pending] = useActionState(setWorkOrderStatusAction, initial);
   const next = allowedTransitions(status);
@@ -76,6 +79,9 @@ export function JobStatusForm({
               const fd = new FormData();
               fd.set("id", id);
               fd.set("status", value);
+              if (value === "cancelled" && returnToOnCancel) {
+                fd.set("returnTo", returnToOnCancel);
+              }
               if (value === "delivered" && setRemind) fd.set("setRemind", "1");
               action(fd);
             }}
@@ -103,7 +109,7 @@ export function JobStatusForm({
               disabled={pending}
               onClick={() => setPendingStatus(null)}
             >
-              İptal
+              Vazgeç
             </Button>
             <Button
               type="button"

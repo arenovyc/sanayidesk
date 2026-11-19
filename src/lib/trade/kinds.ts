@@ -106,7 +106,7 @@ export function bannerCopy(trade: TradeKind): {
   }
   return {
     title: "Dükkanınız hazır!",
-    body: "Listedeki 34 ORN 001 örnek iştir — inceleyip silebilirsiniz. İlk kendi aracını plaka kutusundan kabul et.",
+    body: "Listedeki 34 ORN 001 örnek iştir — iş detayından listeden kaldırabilirsiniz. İlk kendi aracını plaka kutusundan kabul et.",
     ctaHref: "/team",
     ctaLabel: "Usta ekle",
   };

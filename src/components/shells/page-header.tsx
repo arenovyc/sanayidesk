@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { BackLink } from "@/components/shells/back-link";
 
 export function PageHeader({
   title,
@@ -6,24 +6,25 @@ export function PageHeader({
   backHref,
   backLabel = "Geri",
   action,
+  titleClassName,
 }: {
   title: string;
   description?: React.ReactNode;
   backHref?: string;
   backLabel?: string;
   action?: React.ReactNode;
+  titleClassName?: string;
 }) {
   return (
     <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
       <div className="min-w-0">
-        {backHref ? (
-          <p className="text-sm text-neutral-500">
-            <Link href={backHref} className="hover:underline">
-              {backLabel}
-            </Link>
-          </p>
-        ) : null}
-        <h1 className="mt-0.5 text-xl font-semibold tracking-tight text-neutral-950">
+        {backHref ? <BackLink href={backHref} label={backLabel} /> : null}
+        <h1
+          className={
+            titleClassName ??
+            "mt-0.5 text-xl font-semibold tracking-tight text-neutral-950"
+          }
+        >
           {title}
         </h1>
         {description ? (

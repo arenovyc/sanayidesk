@@ -1,20 +1,17 @@
 import { Suspense } from "react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { BackLink } from "@/components/shells/back-link";
+import { JobDetailIsPanel } from "@/components/desk/job-detail-is-panel";
+import { RemoveSampleJobBanner } from "@/components/desk/remove-sample-job-banner";
 import { clearApprovalQuestionAction } from "@/app/(desk)/jobs/actions";
 import { JobAssignPanel } from "@/components/desk/job-assign-panel";
 import { JobDetailTabs } from "@/components/desk/job-detail-tabs";
 import { JobDisTab } from "@/components/desk/job-dis-tab";
-import { JobInventoryIssueForm } from "@/components/desk/inventory-forms";
 import { JobMediaPanel } from "@/components/desk/job-media-form";
-import {
-  JobItemsSection,
-  JobPartsSection,
-  JobPaymentSection,
-} from "@/components/desk/job-money-forms";
+import { JobPaymentSection } from "@/components/desk/job-money-forms";
 import { JobIntakeCompleteForm } from "@/components/desk/job-intake-complete-form";
 import { JobStatusForm } from "@/components/desk/job-status-form";
-import { QuoteApprovalButton } from "@/components/desk/quote-approval-button";
 import { VehicleCheckupPanel } from "@/components/desk/vehicle-checkup";
 import { WhatsAppShareButton } from "@/components/desk/whatsapp-share-button";
 import { Button } from "@/components/ui/button";
@@ -26,14 +23,14 @@ import {
   waReadyVehicleMessage,
 } from "@/lib/format/wa-templates";
 import { listAssignmentHistory } from "@/lib/data/assignments";
-import { listInventoryItems } from "@/lib/data/inventory";
 import { signedMediaUrls } from "@/lib/data/media-urls";
-import { listDirectory, listTeam } from "@/lib/data/ops";
+import { listTeam } from "@/lib/data/ops";
 import { formatIstanbulDate } from "@/lib/format/date";
 import { formatMoney } from "@/lib/format/money";
 import { getWorkOrderDetail } from "@/lib/data/work-orders";
 import { requestNow } from "@/lib/time/request-now";
 import { remainingDue } from "@/lib/work-orders/money";
+import { isSampleWorkOrder } from "@/lib/work-orders/is-sample";
 import { STATUS_LABELS } from "@/lib/work-orders/status";
 
 function ClearApprovalQuestionButton({ id }: { id: string }) {
@@ -64,14 +61,11 @@ export default async function JobDetailPage({
     .filter(Boolean)
     .join(" · ");
 
-  const [mediaUrls, team, historyRes, inventoryRes, directory] =
-    await Promise.all([
-      signedMediaUrls(job.media),
-      listTeam(ctx.workspace.id),
-      listAssignmentHistory(ctx.workspace.id, id),
-      listInventoryItems(ctx.workspace.id),
-      listDirectory(ctx.workspace.id),
-    ]);
+  const [mediaUrls, team, historyRes] = await Promise.all([
+    signedMediaUrls(job.media),
+    listTeam(ctx.workspace.id),
+    listAssignmentHistory(ctx.workspace.id, id),
+  ]);
 
   const mechanics = team.filter(
     (member) => member.role === "mechanic" && member.isActive,
@@ -110,14 +104,15 @@ export default async function JobDetailPage({
     !job.complaint.trim() ||
     !job.customerName;
   const isOwner = ctx.membership.role === "owner";
+  const showSampleBanner = isSampleWorkOrder({
+    complaint: job.complaint,
+    customerName: job.customerName,
+    status: job.status,
+  });
 
   const summary = (
     <div>
-      <p className="text-sm text-neutral-500">
-        <Link href="/board" className="hover:underline">
-          Tahta
-        </Link>
-      </p>
+      <BackLink href="/today" label="Bugün" />
       <div className="mt-1 flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0">
           <h1 className="font-mono text-2xl tracking-wide">{job.plate}</h1>
@@ -154,6 +149,17 @@ export default async function JobDetailPage({
 
   const ozet = (
     <>
+      {showSampleBanner ? (
+        <RemoveSampleJobBanner workOrderId={job.id} />
+      ) : null}
+
+      {job.status === "cancelled" ? (
+        <div className="flex flex-col gap-2 rounded-2xl border border-neutral-200 bg-white px-4 py-3 text-sm text-neutral-600">
+          <p>Bu iş iptal edildi ve Bugün listesinde görünmez.</p>
+          <BackLink href="/today" label="Bugün'e dön" />
+        </div>
+      ) : null}
+
       <SchemaHintBanner missing={Boolean(job.opsSchemaMissing)} />
 
       {job.approvalQuestionAt && job.customerApprovalNote ? (
@@ -265,51 +271,15 @@ export default async function JobDetailPage({
   );
 
   const isParca = (
-    <>
-      <JobItemsSection workOrderId={job.id} items={job.items} />
-
-      <div className="flex flex-col gap-2 rounded-2xl border border-neutral-200 bg-white p-4">
-        <p className="text-sm text-neutral-600">
-          Fiyat onayı — durum &quot;Onay Bekliyor&quot; olur, WhatsApp + onay
-          linki açılır. Tutar kalem toplamıdır.
-        </p>
-        {!hasItems ? (
-          <p className="text-sm text-amber-800">
-            Önce kalem ekle; aksi halde toplam ₺0 görünür.
-          </p>
-        ) : null}
-        <QuoteApprovalButton
-          workOrderId={job.id}
-          preview={quotePreview}
-          phone={job.customerPhone}
-          shopName={ctx.workspace.name}
-          plate={job.plate}
-          quoteLabel={quoteLabel}
-          shopPhone={ctx.workspace.settings.phone}
-          disabled={
-            !hasItems ||
-            job.status === "delivered" ||
-            job.status === "cancelled"
-          }
-        />
-      </div>
-
-      {!inventoryRes.schemaMissing ? (
-        <JobInventoryIssueForm
-          workOrderId={job.id}
-          items={inventoryRes.rows}
-        />
-      ) : null}
-
-      <JobPartsSection
-        workOrderId={job.id}
-        parts={job.parts}
-        plate={job.plate}
-        displayNo={job.displayNo}
+    <Suspense fallback={<RouteLoading />}>
+      <JobDetailIsPanel
+        workspaceId={ctx.workspace.id}
+        job={job}
         shopName={ctx.workspace.name}
-        directory={directory}
+        shopPhone={ctx.workspace.settings.phone}
+        quotePreview={quotePreview}
       />
-    </>
+    </Suspense>
   );
 
   const tahsilat = (

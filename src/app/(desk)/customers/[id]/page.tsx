@@ -1,6 +1,6 @@
 import { Suspense } from "react";
-import { PageSkeleton } from "@/components/ui/skeleton";
 import Link from "next/link";
+import { PageHeader } from "@/components/shells/page-header";
 import { notFound } from "next/navigation";
 import { requireDeskSession } from "@/lib/auth/get-membership";
 import { getCustomer } from "@/lib/data/customers";
@@ -27,16 +27,13 @@ async function CustomerBody({ params }: { params: Promise<{ id: string }> }) {
 
   return (
     <div className="flex flex-col gap-5">
+      <PageHeader
+        title={customer.fullName}
+        backHref="/customers"
+        backLabel="Müşteriler"
+        description={customer.phone ?? undefined}
+      />
       <div>
-        <p className="text-sm text-neutral-500">
-          <Link href="/customers" className="hover:underline">
-            Müşteriler
-          </Link>
-        </p>
-        <h1 className="mt-1 text-xl font-semibold">{customer.fullName}</h1>
-        {customer.phone ? (
-          <p className="text-sm text-neutral-500">{customer.phone}</p>
-        ) : null}
         <p className="mt-2 text-sm">
           Bakiye{" "}
           <span className={customer.balance > 0 ? "font-semibold text-red-700" : "font-semibold"}>

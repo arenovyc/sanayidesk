@@ -1,6 +1,6 @@
 "use client";
 
-import { useSyncExternalStore } from "react";
+import { useEffect, useState } from "react";
 import { AssignForm } from "@/components/desk/assign-form";
 import { SchemaHintBanner } from "@/components/ui/schema-hint-banner";
 import type { AssignmentHistoryRow } from "@/lib/data/assignments";
@@ -17,16 +17,17 @@ function AssignmentTimeLabel({
   assignedAt: string;
   unassignedAt: string | null;
 }) {
-  const label = useSyncExternalStore(
-    () => () => {},
-    () => {
-      const now = new Date();
-      return unassignedAt
+  const [label, setLabel] = useState("");
+
+  useEffect(() => {
+    const now = new Date();
+    setLabel(
+      unassignedAt
         ? formatAssignmentRangeLabel(assignedAt, unassignedAt, now)
-        : formatAssignedAtLabel(assignedAt, now);
-    },
-    () => "",
-  );
+        : formatAssignedAtLabel(assignedAt, now),
+    );
+  }, [assignedAt, unassignedAt]);
+
   return <span>{label || "\u00a0"}</span>;
 }
 

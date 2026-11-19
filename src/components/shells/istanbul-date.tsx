@@ -1,15 +1,15 @@
 "use client";
 
-import { useSyncExternalStore } from "react";
+import { useEffect, useState } from "react";
 import { formatIstanbulDate } from "@/lib/format/date";
 
-/** Client-only date label to avoid SSR/client locale hydration mismatch. */
+/** Client-only date label — avoids Date in prerender / SSR. */
 export function IstanbulDateLabel({ className }: { className?: string }) {
-  const label = useSyncExternalStore(
-    () => () => {},
-    () => formatIstanbulDate(new Date()),
-    () => "",
-  );
+  const [label, setLabel] = useState("");
+
+  useEffect(() => {
+    setLabel(formatIstanbulDate(new Date()));
+  }, []);
 
   return (
     <p className={className} suppressHydrationWarning>

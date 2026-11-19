@@ -1,13 +1,16 @@
 import "server-only";
-import { connection } from "next/server";
+import { io } from "next/cache";
 
-/** Wait for a real request, then return "now" (safe under cacheComponents / PPR). */
+/**
+ * Request-safe "now" under cacheComponents.
+ * Prefer io() over connection() for wall-clock reads (Next 16 docs).
+ */
 export async function requestNowMs(): Promise<number> {
-  await connection();
+  await io();
   return Date.now();
 }
 
 export async function requestNow(): Promise<Date> {
-  await connection();
+  await io();
   return new Date();
 }
