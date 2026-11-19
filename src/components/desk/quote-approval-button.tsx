@@ -32,7 +32,7 @@ export function QuoteApprovalButton({
       <button
         type="button"
         disabled={pending || disabled || !phone}
-        className="inline-flex h-11 w-full items-center justify-center rounded-lg bg-amber-700 px-4 text-sm font-medium text-white disabled:opacity-50"
+        className="inline-flex min-h-12 w-full items-center justify-center rounded-xl bg-amber-800 px-4 text-sm font-medium text-white disabled:opacity-50"
         onClick={() => {
           setError(null);
           const fd = new FormData();

@@ -48,9 +48,25 @@ export function normalizePlate(raw: string): string {
  * Human-readable TR plate: city + letters + numbers with spaces.
  * `06KMK7890` → `06 KMK 7890`. Falls back to normalized string.
  */
-export function displayPlate(raw: string): string {
+const TR_PLATE_RE = /^(\d{2})([A-Z]{1,3})(\d{2,5})$/;
+
+export type ParsedTrPlate =
+  | { official: true; city: string; letters: string; numbers: string; formatted: string }
+  | { official: false; formatted: string };
+
+export function parseTrPlate(raw: string): ParsedTrPlate {
   const key = normalizePlate(raw);
-  const match = key.match(/^(\d{2})([A-Z]{1,3})(\d{2,5})$/);
-  if (!match) return key;
-  return `${match[1]} ${match[2]} ${match[3]}`;
+  const match = key.match(TR_PLATE_RE);
+  if (!match) return { official: false, formatted: key };
+  return {
+    official: true,
+    city: match[1],
+    letters: match[2],
+    numbers: match[3],
+    formatted: `${match[1]} ${match[2]} ${match[3]}`,
+  };
+}
+
+export function displayPlate(raw: string): string {
+  return parseTrPlate(raw).formatted;
 }

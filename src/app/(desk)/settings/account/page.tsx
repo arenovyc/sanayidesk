@@ -8,7 +8,7 @@ import { getAuthUser, requireDeskSession } from "@/lib/auth/get-membership";
 
 export default function AccountSettingsPage() {
   return (
-    <Suspense fallback={null}>
+    <Suspense fallback={<PageSkeleton />}>
       <AccountBody />
     </Suspense>
   );

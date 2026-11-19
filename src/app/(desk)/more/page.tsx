@@ -140,14 +140,14 @@ export default async function MorePage() {
           <h2 className="px-0.5 text-xs font-medium uppercase tracking-wide text-neutral-400">
             {section.title}
           </h2>
-          <ul className="divide-y divide-neutral-200 overflow-hidden rounded-2xl border border-neutral-200 bg-white">
+          <ul className="divide-y divide-neutral-100 overflow-hidden rounded-2xl border border-neutral-200/80 bg-white shadow-sm">
             {section.links.map((item) => {
               const Icon = item.icon;
               return (
                 <li key={`${item.id}-${item.href}`}>
                   <Link
                     href={item.href}
-                    className="flex items-center gap-3 px-4 py-3.5 text-sm"
+                    className="flex min-h-12 items-center gap-3 px-4 py-3.5 text-sm"
                   >
                     <Icon
                       className="size-4 shrink-0 text-neutral-400"

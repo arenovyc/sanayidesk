@@ -488,6 +488,36 @@ export function statusLabelFor(
   return profile.statusLabels[status] ?? STATUS_LABELS[status];
 }
 
+export type JobDetailTabId = "ozet" | "is" | "tahsilat" | "dis";
+
+export type JobDetailTabDef = { id: JobDetailTabId; label: string };
+
+const WORKSHOP_JOB_TABS: JobDetailTabDef[] = [
+  { id: "ozet", label: "Özet" },
+  { id: "is", label: "İş & Parça" },
+  { id: "tahsilat", label: "Tahsilat" },
+  { id: "dis", label: "Dış iş" },
+];
+
+export function jobDetailTabsFor(kind: string | null | undefined): JobDetailTabDef[] {
+  const profile = getTradeProfile(kind);
+  if (profile.kind === "parca") {
+    return [
+      { id: "ozet", label: "Özet" },
+      { id: "is", label: "Satış" },
+      { id: "tahsilat", label: "Tahsilat" },
+    ];
+  }
+  if (profile.kind === "torna") {
+    return [
+      { id: "ozet", label: "Özet" },
+      { id: "is", label: "İş" },
+      { id: "tahsilat", label: "Tahsilat" },
+    ];
+  }
+  return WORKSHOP_JOB_TABS;
+}
+
 export function allTradeProfiles(): TradeProfile[] {
   return TRADE_KINDS.map((k) => PROFILES[k]);
 }

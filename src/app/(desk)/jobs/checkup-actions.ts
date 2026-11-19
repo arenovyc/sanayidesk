@@ -25,6 +25,6 @@ export async function setVehicleCheckupAction(
     }
     return { error: error.message };
   }
-  revalidatePath(`/jobs/${workOrderId}`);
+  revalidatePath(`/jobs/${workOrderId}`, "page");
   return { error: null };
 }

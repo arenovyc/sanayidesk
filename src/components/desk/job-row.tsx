@@ -1,41 +1,69 @@
 import Link from "next/link";
 import { ChevronRight } from "lucide-react";
+import { LicensePlateBadge } from "@/components/ui/license-plate-badge";
+import { StatusBadge } from "@/components/ui/status-badge";
+import { surfaceCardInteractive } from "@/lib/ui/surface";
+import { cn } from "@/lib/utils";
 import { workOrderLabel } from "@/lib/work-orders/display";
-import { STATUS_LABELS } from "@/lib/work-orders/status";
 import type { WorkOrderRow } from "@/lib/work-orders/types";
 
-export function JobRow({ job }: { job: WorkOrderRow }) {
-  const label = workOrderLabel(job);
+export type JobRowJob = Pick<WorkOrderRow, "id" | "status" | "plate"> &
+  Partial<
+    Pick<WorkOrderRow, "counterTitle" | "displayNo" | "makeModel" | "customerName">
+  >;
+
+export function JobRow({
+  job,
+  tradeKind,
+  href,
+  subtitle,
+  from,
+}: {
+  job: JobRowJob;
+  tradeKind?: string | null;
+  href?: string;
+  subtitle?: string;
+  from?: string;
+}) {
+  const isCounter = Boolean(job.counterTitle?.trim()) || !job.plate;
+  const label = workOrderLabel({
+    plate: job.plate,
+    counterTitle: job.counterTitle ?? null,
+  });
+  const extra = subtitle ?? job.makeModel ?? job.customerName ?? undefined;
+  const target =
+    href ??
+    `/jobs/${job.id}${from ? `?from=${encodeURIComponent(from)}` : ""}`;
+
   return (
     <Link
-      href={`/jobs/${job.id}`}
-      className="flex items-center justify-between gap-3 rounded-xl border border-neutral-200 bg-white px-4 py-3"
+      href={target}
+      prefetch
+      className={cn(
+        "flex min-h-14 items-center justify-between gap-3 px-4 py-3",
+        surfaceCardInteractive,
+      )}
     >
-      <span className="flex min-w-0 flex-col">
-        <span
-          className={
-            job.counterTitle
-              ? "truncate text-base font-medium tracking-normal"
-              : "font-mono text-base tracking-wide"
-          }
-        >
-          {label}
+      <span className="flex min-w-0 items-center gap-3">
+        {!isCounter ? <LicensePlateBadge plate={job.plate} size="sm" /> : null}
+        <span className="flex min-w-0 flex-col">
+          {isCounter ? (
+            <span className="truncate text-base font-medium tracking-tight text-neutral-950">
+              {label}
+            </span>
+          ) : null}
+          {job.displayNo ? (
+            <span className="font-mono text-xs tabular-nums text-neutral-400">
+              {job.displayNo}
+            </span>
+          ) : null}
+          {extra ? (
+            <span className="truncate text-xs text-neutral-500">{extra}</span>
+          ) : null}
         </span>
-        {job.displayNo ? (
-          <span className="font-mono text-xs text-neutral-400">
-            {job.displayNo}
-          </span>
-        ) : null}
-        {job.makeModel ? (
-          <span className="mt-0.5 truncate text-xs text-neutral-500">
-            {job.makeModel}
-          </span>
-        ) : null}
       </span>
       <span className="flex shrink-0 items-center gap-2">
-        <span className="rounded-full bg-neutral-100 px-2.5 py-1 text-xs font-medium text-neutral-600">
-          {STATUS_LABELS[job.status]}
-        </span>
+        <StatusBadge status={job.status} tradeKind={tradeKind} />
         <ChevronRight className="size-4 text-neutral-300" aria-hidden />
       </span>
     </Link>

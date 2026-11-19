@@ -3,20 +3,25 @@
 import Link from "next/link";
 import { useState, useTransition } from "react";
 import { setWorkOrderStatusAction } from "@/app/(desk)/jobs/actions";
-import { AssignForm } from "@/components/desk/assign-form";
 import { Button } from "@/components/ui/button";
+import { LicensePlateBadge } from "@/components/ui/license-plate-badge";
+import { Money } from "@/components/ui/money";
+import { Sheet } from "@/components/ui/sheet";
 import { formatMoney } from "@/lib/format/money";
 import { truncateComplaint } from "@/lib/format/wait-label";
 import type { TeamMember } from "@/lib/data/ops";
+import { statusLabelFor } from "@/lib/trade/profile";
+import { surfaceCard } from "@/lib/ui/surface";
+import { cn } from "@/lib/utils";
 import { statusForBoardDrop } from "@/lib/work-orders/board-drop";
 import { workOrderLabel } from "@/lib/work-orders/display";
 import type { BoardCard } from "@/lib/work-orders/types";
 import {
   OPEN_STATUSES,
-  STATUS_LABELS,
   type OpenWorkOrderStatus,
   type WorkOrderStatus,
 } from "@/lib/work-orders/status";
+import { statusTone } from "@/lib/work-orders/status-tone";
 
 type DropPayload = {
   id: string;
@@ -32,14 +37,16 @@ type PendingDrop = {
 
 export function BoardColumns({
   columns,
-  mechanics,
+  mechanics: _mechanics,
   returnTo,
   highlightStatus,
+  tradeKind,
 }: {
   columns: Record<OpenWorkOrderStatus, BoardCard[]>;
   mechanics: TeamMember[];
   returnTo: string;
   highlightStatus?: OpenWorkOrderStatus | null;
+  tradeKind?: string | null;
 }) {
   const [pending, startTransition] = useTransition();
   const [confirmDrop, setConfirmDrop] = useState<PendingDrop | null>(null);
@@ -88,40 +95,44 @@ export function BoardColumns({
 
   return (
     <div className="flex flex-col gap-3">
-      {confirmDrop ? (
-        <div
-          role="dialog"
-          aria-modal="true"
-          className="rounded-2xl border border-amber-200 bg-amber-50 p-4"
-        >
-          <p className="text-sm text-amber-950">
-            Bu işin {formatMoney(confirmDrop.remaining)} kalan ödemesi var.
-            Tahsilat almadan müşteri carisine (veresiye) borç yazarak devam
-            etmek istiyor musun?
-          </p>
-          <div className="mt-3 flex flex-wrap gap-2">
-            <Button
-              type="button"
-              variant="outline"
-              disabled={pending}
-              onClick={() => setConfirmDrop(null)}
-            >
-              İptal
-            </Button>
-            <Button
-              type="button"
-              disabled={pending}
-              onClick={() => {
-                const drop = confirmDrop;
-                setConfirmDrop(null);
-                applyStatus(drop.id, drop.next, true);
-              }}
-            >
-              Veresiye devam
-            </Button>
+      <Sheet
+        open={Boolean(confirmDrop)}
+        onClose={() => setConfirmDrop(null)}
+        title="Tahsilatsız teslim"
+      >
+        {confirmDrop ? (
+          <div className="flex flex-col gap-3">
+            <p className="text-sm text-neutral-700">
+              Bu işin {formatMoney(confirmDrop.remaining)} kalan ödemesi var.
+              Tahsilat almadan müşteri carisine (veresiye) borç yazarak devam
+              etmek istiyor musun?
+            </p>
+            <div className="flex flex-wrap gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                className="min-h-12 flex-1 rounded-xl"
+                disabled={pending}
+                onClick={() => setConfirmDrop(null)}
+              >
+                İptal
+              </Button>
+              <Button
+                type="button"
+                className="min-h-12 flex-1 rounded-xl"
+                disabled={pending}
+                onClick={() => {
+                  const drop = confirmDrop;
+                  setConfirmDrop(null);
+                  applyStatus(drop.id, drop.next, true);
+                }}
+              >
+                Veresiye devam
+              </Button>
+            </div>
           </div>
-        </div>
-      ) : null}
+        ) : null}
+      </Sheet>
 
       <div className="-mx-4 flex gap-3 overflow-x-auto px-4 pb-2 lg:mx-0 lg:gap-2.5 lg:overflow-x-visible lg:px-0 xl:gap-3">
         {visible.map((status) => {
@@ -140,11 +151,17 @@ export function BoardColumns({
                 handleDrop(status, raw);
               }}
             >
-              <div className="flex items-baseline justify-between px-0.5">
-                <h2 className="text-sm font-medium text-neutral-500">
-                  {STATUS_LABELS[status]}
+              <div className="flex items-baseline justify-between gap-2 px-0.5">
+                <h2 className="flex items-center gap-2 text-sm font-medium text-neutral-700">
+                  <span
+                    className={cn("h-1.5 w-6 rounded-full", statusTone(status).bar)}
+                    aria-hidden
+                  />
+                  {statusLabelFor(tradeKind, status)}
                 </h2>
-                <span className="text-xs text-neutral-400">{cards.length}</span>
+                <span className="text-xs tabular-nums text-neutral-400">
+                  {cards.length}
+                </span>
               </div>
               {cards.length === 0 ? (
                 <p className="rounded-xl border border-dashed border-neutral-200 bg-white px-3 py-6 text-center text-sm text-neutral-400">
@@ -167,57 +184,49 @@ export function BoardColumns({
                         );
                         event.dataTransfer.effectAllowed = "move";
                       }}
-                      className="rounded-2xl border border-neutral-200 bg-white p-3 active:cursor-grabbing"
+                      className={cn(surfaceCard, "p-3 active:cursor-grabbing")}
                     >
-                      <div className="flex items-start justify-between gap-2">
-                        <Link href={`/jobs/${card.id}`} className="min-w-0">
-                          <p
-                            className={
-                              card.counterTitle
-                                ? "text-lg font-medium tracking-normal"
-                                : "font-mono text-lg tracking-wide"
-                            }
-                          >
+                      <Link
+                        href={`/jobs/${card.id}?from=${encodeURIComponent(returnTo)}`}
+                        prefetch
+                        className="flex min-w-0 flex-col gap-1"
+                      >
+                        {card.counterTitle || !card.plate ? (
+                          <p className="text-base font-medium tracking-tight">
                             {workOrderLabel(card)}
                           </p>
-                          {card.displayNo ? (
-                            <p className="font-mono text-xs text-neutral-500">
-                              {card.displayNo}
-                            </p>
-                          ) : null}
-                          {card.makeModel ? (
-                            <p className="mt-1 truncate text-xs font-medium text-neutral-700">
-                              {card.makeModel}
-                            </p>
-                          ) : null}
-                          {truncateComplaint(card.complaint) ? (
-                            <p className="mt-0.5 text-xs text-neutral-500">
-                              {truncateComplaint(card.complaint)}
-                            </p>
-                          ) : null}
-                          <p className="mt-1 text-xs text-amber-800/90">
-                            {card.waitText}
+                        ) : (
+                          <LicensePlateBadge plate={card.plate} size="sm" />
+                        )}
+                        {card.displayNo ? (
+                          <p className="font-mono text-xs tabular-nums text-neutral-500">
+                            {card.displayNo}
                           </p>
-                          <p className="mt-1 text-xs text-neutral-500">
-                            {card.assigneeName
-                              ? `Usta: ${card.assigneeName}`
-                              : "Usta atanmadı"}
+                        ) : null}
+                        {card.makeModel ? (
+                          <p className="truncate text-xs font-medium text-neutral-700">
+                            {card.makeModel}
                           </p>
-                          <p className="mt-0.5 text-xs text-neutral-500">
-                            Toplam {formatMoney(card.due)} · Kalan{" "}
-                            {formatMoney(card.remaining)}
+                        ) : null}
+                        {truncateComplaint(card.complaint) ? (
+                          <p className="text-xs text-neutral-500">
+                            {truncateComplaint(card.complaint)}
                           </p>
-                        </Link>
-                      </div>
-                      <div className="mt-2 border-t border-neutral-100 pt-2">
-                        <AssignForm
-                          workOrderId={card.id}
-                          mechanics={mechanics}
-                          currentMembershipId={card.assigneeMembershipId}
-                          returnTo={returnTo}
-                          compact
-                        />
-                      </div>
+                        ) : null}
+                        <p className="text-xs text-amber-800/90">{card.waitText}</p>
+                        <p className="text-xs text-neutral-500">
+                          {card.assigneeName
+                            ? `Usta: ${card.assigneeName}`
+                            : "Usta atanmadı — işten ata"}
+                        </p>
+                        <p className="text-xs text-neutral-500">
+                          Toplam <Money amount={card.due} tone="muted" /> · Kalan{" "}
+                          <Money
+                            amount={card.remaining}
+                            tone={card.remaining > 0 ? "debt" : "paid"}
+                          />
+                        </p>
+                      </Link>
                     </li>
                   ))}
                 </ul>

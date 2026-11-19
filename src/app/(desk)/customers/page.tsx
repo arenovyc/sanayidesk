@@ -6,11 +6,13 @@ import { PageHeader } from "@/components/shells/page-header";
 import { EmptyState } from "@/components/ui/empty-state";
 import { requireDeskSession } from "@/lib/auth/get-membership";
 import { listCustomers } from "@/lib/data/customers";
-import { formatMoney } from "@/lib/format/money";
+import { Money } from "@/components/ui/money";
+import { surfaceCard } from "@/lib/ui/surface";
+import { cn } from "@/lib/utils";
 
 export default function CustomersPage() {
   return (
-    <Suspense fallback={null}>
+    <Suspense fallback={<PageSkeleton />}>
       <CustomersBody />
     </Suspense>
   );
@@ -37,12 +39,15 @@ async function CustomersBody() {
           actionLabel="Araç kabul et"
         />
       ) : (
-        <ul className="divide-y divide-neutral-200 overflow-hidden rounded-2xl border border-neutral-200 bg-white">
+        <ul className="flex flex-col gap-2">
           {customers.map((customer) => (
             <li key={customer.id}>
               <Link
                 href={`/customers/${customer.id}`}
-                className="flex items-center justify-between px-4 py-3.5 text-sm"
+                className={cn(
+                  surfaceCard,
+                  "flex min-h-14 items-center justify-between px-4 py-3.5 text-sm",
+                )}
               >
                 <span>
                   <span className="font-medium">{customer.fullName}</span>
@@ -50,9 +55,10 @@ async function CustomersBody() {
                     <span className="ml-2 text-neutral-400">{customer.phone}</span>
                   ) : null}
                 </span>
-                <span className={customer.balance > 0 ? "text-red-700" : "text-neutral-500"}>
-                  {formatMoney(customer.balance)}
-                </span>
+                <Money
+                  amount={customer.balance}
+                  tone={customer.balance > 0 ? "debt" : "muted"}
+                />
               </Link>
             </li>
           ))}

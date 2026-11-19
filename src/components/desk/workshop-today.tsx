@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Car } from "lucide-react";
 import { AcceptForm } from "@/components/desk/accept-form";
 import { ClearRemindButton } from "@/components/desk/clear-remind-button";
 import { JobRow } from "@/components/desk/job-row";
@@ -11,8 +12,11 @@ import {
 import { WorkshopQuickAccept } from "@/components/desk/workshop-quick-accept";
 import { OnboardingChecklist } from "@/components/desk/onboarding-checklist";
 import { PageHeader } from "@/components/shells/page-header";
+import { EmptyState } from "@/components/ui/empty-state";
+import { LicensePlateBadge } from "@/components/ui/license-plate-badge";
 import { getTradeProfile } from "@/lib/trade/profile";
-import { Button } from "@/components/ui/button";
+import { surfaceCard } from "@/lib/ui/surface";
+import { cn } from "@/lib/utils";
 import { formatAppointmentTime } from "@/lib/appointments/day-range";
 import { istanbulDayBoundsIso } from "@/lib/appointments/day-range";
 import type { SessionContext } from "@/lib/auth/types";
@@ -23,15 +27,20 @@ import {
   searchWorkOrders,
 } from "@/lib/data/work-orders";
 import { formatIstanbulDate } from "@/lib/format/date";
-import { displayPlate } from "@/lib/format/plate";
 import { waMaintenanceReminderMessage } from "@/lib/format/wa-templates";
 import { requestNow } from "@/lib/time/request-now";
 import type { TradeKind } from "@/lib/trade/kinds";
 import {
   BUCKET_LABELS,
-  STATUS_LABELS,
   TODAY_BUCKETS,
+  type TodayBucket,
 } from "@/lib/work-orders/status";
+
+const BUCKET_HREF: Record<TodayBucket, string> = {
+  inside: "/board",
+  parts: "/board?status=waiting_parts",
+  ready: "/board?status=ready",
+};
 
 export async function WorkshopToday({
   ctx,
@@ -44,11 +53,13 @@ export async function WorkshopToday({
   shopCode?: string;
   q?: string;
 }) {
-  const now = await requestNow();
-  const { startIso, endIso } = istanbulDayBoundsIso(now);
-  const [board, searchHits, appointments, reminders] = await Promise.all([
+  const [now, board, searchHits] = await Promise.all([
+    requestNow(),
     getTodayBoard(ctx.workspace.id),
     q ? searchWorkOrders(ctx.workspace.id, q) : Promise.resolve([]),
+  ]);
+  const { startIso, endIso } = istanbulDayBoundsIso(now);
+  const [appointments, reminders] = await Promise.all([
     listTodayScheduledAppointments(ctx.workspace.id, startIso, endIso),
     listDueMaintenanceReminders(ctx.workspace.id, endIso),
   ]);
@@ -67,9 +78,66 @@ export async function WorkshopToday({
       <PageHeader title="Bugün" description={description} />
       <ShopCodeBanner shopCode={shopCode} tradeKind={tradeKind} />
       <OnboardingChecklist steps={profile.onboardingSteps} />
-      <WorkshopQuickAccept tradeKind={tradeKind} />
-      <AcceptForm />
+
+      <section className={cn(surfaceCard, "flex flex-col gap-3 p-4")}>
+        <h2 className="text-sm font-medium text-neutral-950">
+          {profile.labels.acceptNoun}
+        </h2>
+        <WorkshopQuickAccept tradeKind={tradeKind} />
+        <AcceptForm />
+      </section>
+
+      {board.jobs.length === 0 ? (
+        <EmptyState
+          icon={Car}
+          title={profile.labels.emptyToday}
+          description="İlk plakayı yukarıdaki kutuya yaz — iş emri hemen açılır."
+        />
+      ) : (
+        <ul className="flex flex-col gap-2">
+          {board.jobs.map((job) => (
+            <li key={job.id}>
+              <JobRow job={job} tradeKind={tradeKind} />
+            </li>
+          ))}
+        </ul>
+      )}
+
+      <dl className="grid grid-cols-3 gap-2 text-center">
+        {TODAY_BUCKETS.map((bucket) => (
+          <Link
+            key={bucket}
+            href={BUCKET_HREF[bucket]}
+            className={cn(surfaceCard, "py-3 transition-colors hover:bg-neutral-50")}
+          >
+            <dt className="text-xs text-neutral-500">{BUCKET_LABELS[bucket]}</dt>
+            <dd className="text-lg font-semibold tabular-nums text-neutral-950">
+              {board.counts[bucket]}
+            </dd>
+          </Link>
+        ))}
+      </dl>
+
       <JobSearch />
+
+      {q ? (
+        <section className="flex flex-col gap-2">
+          <h2 className="text-sm font-medium text-neutral-500">Arama</h2>
+          {searchHits.length === 0 ? (
+            <p className="text-sm text-neutral-500">
+              Bu plaka veya isim açık işlerde yok.
+            </p>
+          ) : (
+            <ul className="flex flex-col gap-2">
+              {searchHits.map((job) => (
+                <li key={job.id}>
+                  <JobRow job={job} tradeKind={tradeKind} />
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+      ) : null}
 
       {!appointments.schemaMissing && appointments.rows.length > 0 ? (
         <section className="flex flex-col gap-2">
@@ -82,17 +150,15 @@ export async function WorkshopToday({
               Tümü
             </Link>
           </div>
-          <ul className="divide-y divide-neutral-200 overflow-hidden rounded-2xl border border-neutral-200 bg-white">
+          <ul className={cn(surfaceCard, "divide-y divide-neutral-100")}>
             {appointments.rows.map((appt) => (
               <li key={appt.id}>
                 <Link
                   href="/appointments"
-                  className="flex justify-between px-4 py-3 text-sm"
+                  className="flex items-center justify-between gap-3 px-4 py-3 text-sm"
                 >
-                  <span className="font-mono tracking-wide">
-                    {displayPlate(appt.plate)}
-                  </span>
-                  <span className="text-neutral-500">
+                  <LicensePlateBadge plate={appt.plate} size="sm" />
+                  <span className="tabular-nums text-neutral-500">
                     {formatAppointmentTime(appt.scheduledAt)}
                   </span>
                 </Link>
@@ -107,7 +173,7 @@ export async function WorkshopToday({
           <h2 className="text-sm font-medium text-neutral-500">
             Bakımı Gelenler
           </h2>
-          <ul className="divide-y divide-neutral-200 overflow-hidden rounded-2xl border border-amber-200 bg-amber-50/40">
+          <ul className="overflow-hidden rounded-2xl border border-amber-200/80 bg-amber-50/40 shadow-sm">
             {reminders.rows.map((row) => {
               const preview = waMaintenanceReminderMessage({
                 shopName: ctx.workspace.name,
@@ -115,16 +181,16 @@ export async function WorkshopToday({
                 shopPhone: ctx.workspace.settings.phone,
               });
               return (
-                <li key={row.id} className="px-4 py-3">
+                <li
+                  key={row.id}
+                  className="border-b border-amber-100 px-4 py-3 last:border-0"
+                >
                   <div className="flex flex-wrap items-center justify-between gap-2">
-                    <div>
-                      <Link
-                        href={`/jobs/${row.id}`}
-                        className="font-mono text-sm tracking-wide hover:underline"
-                      >
-                        {row.plate}
+                    <div className="flex min-w-0 flex-col gap-1">
+                      <Link href={`/jobs/${row.id}`}>
+                        <LicensePlateBadge plate={row.plate} size="sm" />
                       </Link>
-                      <p className="text-xs text-neutral-500">
+                      <p className="text-xs tabular-nums text-neutral-500">
                         {formatIstanbulDate(new Date(row.remindAt))}
                         {row.displayNo ? ` · ${row.displayNo}` : null}
                       </p>
@@ -146,60 +212,6 @@ export async function WorkshopToday({
           </ul>
         </section>
       ) : null}
-
-      {q ? (
-        <section className="flex flex-col gap-2">
-          <h2 className="text-sm font-medium text-neutral-500">Arama</h2>
-          {searchHits.length === 0 ? (
-            <p className="text-sm text-neutral-400">Sonuç yok.</p>
-          ) : (
-            <ul className="divide-y divide-neutral-200 overflow-hidden rounded-2xl border border-neutral-200 bg-white">
-              {searchHits.map((job) => (
-                <li key={job.id}>
-                  <Link
-                    href={`/jobs/${job.id}`}
-                    className="flex justify-between px-4 py-3 text-sm"
-                  >
-                    <span className="font-mono tracking-wide">{job.plate}</span>
-                    <span className="text-neutral-500">
-                      {job.displayNo ?? STATUS_LABELS[job.status]}
-                    </span>
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          )}
-        </section>
-      ) : null}
-
-      <dl className="grid grid-cols-3 gap-2 text-center">
-        {TODAY_BUCKETS.map((bucket) => (
-          <div
-            key={bucket}
-            className="rounded-xl border border-neutral-200 bg-white py-3"
-          >
-            <dt className="text-xs text-neutral-500">{BUCKET_LABELS[bucket]}</dt>
-            <dd className="text-lg font-semibold">{board.counts[bucket]}</dd>
-          </div>
-        ))}
-      </dl>
-
-      {board.jobs.length === 0 ? (
-        <div className="rounded-2xl border border-dashed border-neutral-200 bg-white px-4 py-10 text-center">
-          <p className="text-sm text-neutral-500">Plakayı yaz, iş emri aç.</p>
-          <Button asChild variant="outline" className="mt-4">
-            <Link href="/jobs/new">Araç Kabul</Link>
-          </Button>
-        </div>
-      ) : (
-        <ul className="flex flex-col gap-2">
-          {board.jobs.map((job) => (
-            <li key={job.id}>
-              <JobRow job={job} />
-            </li>
-          ))}
-        </ul>
-      )}
     </div>
   );
 }

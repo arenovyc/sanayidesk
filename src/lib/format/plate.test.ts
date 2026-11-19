@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { displayPlate, normalizePlate } from "./plate";
+import { displayPlate, normalizePlate, parseTrPlate } from "./plate";
 
 test("strips spaces and hyphens", () => {
   assert.equal(normalizePlate("06 ABC 123"), "06ABC123");
@@ -27,4 +27,21 @@ test("displayPlate inserts spaces for TR format", () => {
 test("displayPlate falls back when shape unknown", () => {
   assert.equal(displayPlate("ABC"), "ABC");
   assert.equal(displayPlate("12345"), "12345");
+});
+
+test("parseTrPlate splits official plates", () => {
+  const parsed = parseTrPlate("06kmk7890");
+  assert.equal(parsed.official, true);
+  if (parsed.official) {
+    assert.equal(parsed.city, "06");
+    assert.equal(parsed.letters, "KMK");
+    assert.equal(parsed.numbers, "7890");
+    assert.equal(parsed.formatted, "06 KMK 7890");
+  }
+});
+
+test("parseTrPlate marks unknown shapes unofficial", () => {
+  const parsed = parseTrPlate("ABC");
+  assert.equal(parsed.official, false);
+  assert.equal(parsed.formatted, "ABC");
 });

@@ -37,6 +37,7 @@ function isMissing(error: { code?: string; message?: string } | null) {
 
 export async function listInventoryItems(
   workspaceId: string,
+  opts?: { includeReserved?: boolean },
 ): Promise<{ rows: InventoryItem[]; schemaMissing: boolean }> {
   const supabase = await createServerSupabase();
   if (!supabase) return { rows: [], schemaMissing: false };
@@ -62,26 +63,53 @@ export async function listInventoryItems(
     updatedAt: row.updated_at as string,
   }));
 
-  const reserved = await Promise.all(
-    baseRows.map(async (row) => {
-      const { data: reservedQty, error: reservedError } = await supabase.rpc(
-        "inventory_reserved_qty",
-        { _item_id: row.id },
-      );
-      if (reservedError) {
-        if (isMissing(reservedError)) return 0;
-        return 0;
-      }
-      return Number(reservedQty ?? 0);
-    }),
-  );
+  if (opts?.includeReserved === false) {
+    return {
+      schemaMissing: false,
+      rows: baseRows.map((row) => ({
+        ...row,
+        reservedQty: 0,
+        availableQty: Math.max(0, row.qty),
+      })),
+    };
+  }
+
+  // One movements scan instead of N× inventory_reserved_qty RPCs.
+  const { data: moveRows, error: moveError } = await supabase
+    .from("inventory_movements")
+    .select("item_id, kind, qty")
+    .eq("workspace_id", workspaceId)
+    .in("kind", ["reserve", "release"]);
+
+  if (moveError) {
+    if (isMissing(moveError)) {
+      return {
+        schemaMissing: false,
+        rows: baseRows.map((row) => ({
+          ...row,
+          reservedQty: 0,
+          availableQty: Math.max(0, row.qty),
+        })),
+      };
+    }
+    throw moveError;
+  }
+
+  const reservedByItem = new Map<string, number>();
+  for (const move of moveRows ?? []) {
+    const kind = move.kind as string;
+    const qty = Number(move.qty);
+    if (!Number.isFinite(qty)) continue;
+    const delta = kind === "reserve" ? qty : kind === "release" ? -qty : 0;
+    if (delta === 0) continue;
+    const itemId = move.item_id as string;
+    reservedByItem.set(itemId, (reservedByItem.get(itemId) ?? 0) + delta);
+  }
 
   return {
     schemaMissing: false,
-    rows: baseRows.map((row, index) => {
-      const reservedQty = Number.isFinite(reserved[index])
-        ? Math.max(0, reserved[index]!)
-        : 0;
+    rows: baseRows.map((row) => {
+      const reservedQty = Math.max(0, reservedByItem.get(row.id) ?? 0);
       return {
         ...row,
         reservedQty,

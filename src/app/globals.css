@@ -3,11 +3,16 @@
 :root {
   --background: #fafafa;
   --foreground: #0a0a0a;
+  --surface-page: #fafafa;
+  --surface-card: #ffffff;
+  --ring-card: rgb(229 229 229 / 0.8);
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-surface-page: var(--surface-page);
+  --color-surface-card: var(--surface-card);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }

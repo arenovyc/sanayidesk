@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import { PageSkeleton } from "@/components/ui/skeleton";
 import { redirect } from "next/navigation";
 import { TeamPanel } from "@/components/desk/team-forms";
 import { PageHeader } from "@/components/shells/page-header";
@@ -8,7 +9,7 @@ import { hasServiceRoleKey } from "@/lib/supabase/env";
 
 export default function TeamPage() {
   return (
-    <Suspense fallback={null}>
+    <Suspense fallback={<PageSkeleton />}>
       <TeamBody />
     </Suspense>
   );

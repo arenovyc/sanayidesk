@@ -1,12 +1,14 @@
 "use client";
 
-import { useActionState, useState } from "react";
+import { useActionState, useEffect, useState } from "react";
 import {
   setWorkOrderStatusAction,
   type JobActionState,
 } from "@/app/(desk)/jobs/actions";
 import { Button } from "@/components/ui/button";
+import { Sheet } from "@/components/ui/sheet";
 import { formatMoney } from "@/lib/format/money";
+import { toastError } from "@/lib/ui/toast";
 import {
   allowedTransitions,
   STATUS_LABELS,
@@ -33,6 +35,10 @@ export function JobStatusForm({
     null,
   );
   const [setRemind, setSetRemind] = useState(true);
+
+  useEffect(() => {
+    if (state.error) toastError(state.error);
+  }, [state]);
 
   if (next.length === 0) {
     return (
@@ -91,46 +97,50 @@ export function JobStatusForm({
         ))}
       </div>
 
-      {needsUnpaidConfirm && pendingStatus ? (
-        <div
-          role="dialog"
-          aria-modal="true"
-          className="rounded-2xl border border-amber-200 bg-amber-50 p-4"
-        >
-          <p className="text-sm text-amber-950">
-            Bu işin {formatMoney(remaining)} kalan ödemesi var. Tahsilat
-            almadan müşteri carisine (veresiye) borç yazarak devam etmek
-            istiyor musun?
-          </p>
-          <div className="mt-3 flex flex-wrap gap-2">
-            <Button
-              type="button"
-              variant="outline"
-              disabled={pending}
-              onClick={() => setPendingStatus(null)}
-            >
-              Vazgeç
-            </Button>
-            <Button
-              type="button"
-              disabled={pending}
-              onClick={() => {
-                const fd = new FormData();
-                fd.set("id", id);
-                fd.set("status", pendingStatus);
-                fd.set("allowUnpaid", "1");
-                if (pendingStatus === "delivered" && setRemind) {
-                  fd.set("setRemind", "1");
-                }
-                setPendingStatus(null);
-                action(fd);
-              }}
-            >
-              Veresiye devam
-            </Button>
+      <Sheet
+        open={needsUnpaidConfirm && Boolean(pendingStatus)}
+        onClose={() => setPendingStatus(null)}
+        title="Tahsilatsız teslim"
+      >
+        {pendingStatus ? (
+          <div className="flex flex-col gap-3">
+            <p className="text-sm text-neutral-700">
+              Bu işin {formatMoney(remaining)} kalan ödemesi var. Tahsilat
+              almadan müşteri carisine (veresiye) borç yazarak devam etmek
+              istiyor musun?
+            </p>
+            <div className="flex flex-wrap gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                className="min-h-12 flex-1 rounded-xl"
+                disabled={pending}
+                onClick={() => setPendingStatus(null)}
+              >
+                Vazgeç
+              </Button>
+              <Button
+                type="button"
+                className="min-h-12 flex-1 rounded-xl"
+                disabled={pending}
+                onClick={() => {
+                  const fd = new FormData();
+                  fd.set("id", id);
+                  fd.set("status", pendingStatus);
+                  fd.set("allowUnpaid", "1");
+                  if (pendingStatus === "delivered" && setRemind) {
+                    fd.set("setRemind", "1");
+                  }
+                  setPendingStatus(null);
+                  action(fd);
+                }}
+              >
+                Veresiye devam
+              </Button>
+            </div>
           </div>
-        </div>
-      ) : null}
+        ) : null}
+      </Sheet>
 
       {state.error ? (
         <p className="text-sm text-red-700" role="alert">

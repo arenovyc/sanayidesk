@@ -114,7 +114,7 @@ export async function setWorkOrderStatusAction(
 
   const dest = safeJobReturnTo(parsed.data.returnTo, parsed.data.id);
   if (dest === `/jobs/${parsed.data.id}` || dest.startsWith(`/jobs/${parsed.data.id}?`)) {
-    revalidatePath(`/jobs/${parsed.data.id}`);
+    revalidatePath(`/jobs/${parsed.data.id}`, "page");
     return { error: null };
   }
   redirect(dest);
@@ -180,7 +180,7 @@ export async function shareQuoteSetWaitingApprovalAction(
     });
   }
 
-  revalidatePath(`/jobs/${parsed.data.id}`);
+  revalidatePath(`/jobs/${parsed.data.id}`, "page");
   return { error: null, approvalUrl };
 }
 
@@ -245,7 +245,7 @@ export async function updateJobIntakeAction(
     return { error: mapJobError(error.message) };
   }
 
-  revalidatePath(`/jobs/${parsed.data.workOrderId}`);
+  revalidatePath(`/jobs/${parsed.data.workOrderId}`, "page");
   return { error: null };
 }
 
@@ -262,5 +262,5 @@ export async function clearApprovalQuestionAction(
   await supabase.rpc("desk_clear_approval_question", {
     _work_order_id: id,
   });
-  revalidatePath(`/jobs/${id}`);
+  revalidatePath(`/jobs/${id}`, "page");
 }

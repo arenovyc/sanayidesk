@@ -2,6 +2,8 @@ import { Suspense } from "react";
 import { PageSkeleton } from "@/components/ui/skeleton";
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { PageHeader } from "@/components/shells/page-header";
+import { Money } from "@/components/ui/money";
 import { SchemaHintBanner } from "@/components/ui/schema-hint-banner";
 import { requireDeskSession } from "@/lib/auth/get-membership";
 import { listBonusesThisMonth } from "@/lib/data/bonuses";
@@ -10,7 +12,7 @@ import { formatMoney } from "@/lib/format/money";
 
 export default function BonusesPage() {
   return (
-    <Suspense fallback={null}>
+    <Suspense fallback={<PageSkeleton />}>
       <BonusesBody />
     </Suspense>
   );
@@ -36,15 +38,12 @@ async function BonusesBody() {
 
   return (
     <div className="flex flex-col gap-4">
-      <div>
-        <p className="text-sm text-neutral-500">
-          <Link href="/more" className="hover:underline">
-            Daha fazla
-          </Link>
-        </p>
-        <h1 className="mt-1 text-xl font-semibold">Usta primleri</h1>
-        <p className="mt-1 text-sm text-neutral-500">Bu ay (İstanbul saati).</p>
-      </div>
+      <PageHeader
+        title="Usta primleri"
+        backHref="/more"
+        backLabel="Daha fazla"
+        description="Bu ay (İstanbul saati)."
+      />
 
       {schemaMissing ? (
         <SchemaHintBanner missing />
@@ -62,7 +61,7 @@ async function BonusesBody() {
                     className="flex justify-between px-4 py-3 text-sm"
                   >
                     <span className="font-medium">{row.name}</span>
-                    <span>{formatMoney(row.total)}</span>
+                    <Money amount={row.total} />
                   </li>
                 ))}
               </ul>
@@ -91,7 +90,7 @@ async function BonusesBody() {
                           {row.note ? ` · ${row.note}` : ""}
                         </span>
                       </span>
-                      <span className="font-medium">{formatMoney(row.amount)}</span>
+                      <Money amount={row.amount} className="font-medium" />
                     </Link>
                   </li>
                 ))}

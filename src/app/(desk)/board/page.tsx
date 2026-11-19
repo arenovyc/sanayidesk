@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { BoardColumns } from "@/components/desk/board-columns";
 import { BoardList } from "@/components/desk/board-list";
+import { JobRow } from "@/components/desk/job-row";
 import { JobSearch } from "@/components/desk/job-search";
 import { PageHeader } from "@/components/shells/page-header";
 import { SchemaHintBanner } from "@/components/ui/schema-hint-banner";
@@ -12,7 +13,6 @@ import {
 } from "@/lib/data/work-orders";
 import { boardColumnForStatus } from "@/lib/assignments/rules";
 import { getTradeProfile, statusLabelFor } from "@/lib/trade/profile";
-import { workOrderLabel } from "@/lib/work-orders/display";
 import { isWorkOrderStatus } from "@/lib/work-orders/status";
 
 export default async function BoardPage({
@@ -109,29 +109,18 @@ export default async function BoardPage({
         <section className="flex flex-col gap-2">
           <h2 className="text-sm font-medium text-neutral-500">Arama</h2>
           {searchHits.length === 0 ? (
-            <p className="text-sm text-neutral-400">Sonuç yok.</p>
+            <p className="text-sm text-neutral-500">
+              Bu plaka veya isim açık işlerde yok.
+            </p>
           ) : (
-            <ul className="divide-y divide-neutral-200 overflow-hidden rounded-2xl border border-neutral-200 bg-white">
+            <ul className="flex flex-col gap-2">
               {searchHits.map((job) => (
                 <li key={job.id}>
-                  <Link
-                    href={`/jobs/${job.id}`}
-                    className="flex justify-between px-4 py-3 text-sm"
-                  >
-                    <span
-                      className={
-                        job.counterTitle
-                          ? "font-medium"
-                          : "font-mono tracking-wide"
-                      }
-                    >
-                      {workOrderLabel(job)}
-                    </span>
-                    <span className="text-neutral-500">
-                      {job.displayNo ??
-                        statusLabelFor(ctx.workspace.tradeKind, job.status)}
-                    </span>
-                  </Link>
+                  <JobRow
+                    job={job}
+                    tradeKind={ctx.workspace.tradeKind}
+                    from="/board"
+                  />
                 </li>
               ))}
             </ul>
@@ -153,6 +142,7 @@ export default async function BoardPage({
           mechanics={mechanics}
           returnTo={returnTo}
           highlightStatus={statusFilter}
+          tradeKind={ctx.workspace.tradeKind}
         />
       )}
     </div>

@@ -4,6 +4,7 @@ import { TRADE_KINDS } from "./kinds";
 import {
   assertProfilesComplete,
   getTradeProfile,
+  jobDetailTabsFor,
   statusLabelFor,
 } from "./profile";
 
@@ -38,4 +39,14 @@ test("statusLabelFor uses overrides", () => {
 test("counter intake needs", () => {
   assert.equal(getTradeProfile("parca").jobDetail.intakeNeeds, "counter");
   assert.equal(getTradeProfile("tamir").jobDetail.intakeNeeds, "workshop");
+});
+
+test("job detail tabs hide dış iş on counter trades", () => {
+  assert.equal(jobDetailTabsFor("tamir").length, 4);
+  assert.deepEqual(
+    jobDetailTabsFor("parca").map((t) => t.id),
+    ["ozet", "is", "tahsilat"],
+  );
+  assert.equal(jobDetailTabsFor("parca").find((t) => t.id === "is")?.label, "Satış");
+  assert.equal(jobDetailTabsFor("torna").find((t) => t.id === "is")?.label, "İş");
 });

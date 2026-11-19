@@ -1,30 +1,33 @@
-import { Suspense } from "react";
+import { Suspense, type ReactNode } from "react";
 import Link from "next/link";
 import { BackLink } from "@/components/shells/back-link";
 import { JobDetailIsPanel } from "@/components/desk/job-detail-is-panel";
 import { RemoveSampleJobBanner } from "@/components/desk/remove-sample-job-banner";
 import { clearApprovalQuestionAction } from "@/app/(desk)/jobs/actions";
-import { JobAssignPanel } from "@/components/desk/job-assign-panel";
 import { JobDetailTabs } from "@/components/desk/job-detail-tabs";
 import { JobDisTab } from "@/components/desk/job-dis-tab";
-import { JobMediaPanel } from "@/components/desk/job-media-form";
 import { JobPaymentSection } from "@/components/desk/job-money-forms";
 import { JobIntakeCompleteForm } from "@/components/desk/job-intake-complete-form";
 import { JobStatusForm } from "@/components/desk/job-status-form";
 import { VehicleCheckupPanel } from "@/components/desk/vehicle-checkup";
+import { QuoteApprovalButton } from "@/components/desk/quote-approval-button";
 import { WhatsAppShareButton } from "@/components/desk/whatsapp-share-button";
 import { Button } from "@/components/ui/button";
+import { LicensePlateBadge } from "@/components/ui/license-plate-badge";
+import { Money } from "@/components/ui/money";
 import { RouteLoading } from "@/components/ui/skeleton";
 import { SchemaHintBanner } from "@/components/ui/schema-hint-banner";
+import { StatusBadge } from "@/components/ui/status-badge";
 import type { SessionContext } from "@/lib/auth/types";
-import type { AssignmentHistoryRow } from "@/lib/data/assignments";
-import type { TeamMember } from "@/lib/data/ops";
 import {
   waQuoteSummaryMessage,
   waReadyVehicleMessage,
 } from "@/lib/format/wa-templates";
 import { formatMoney } from "@/lib/format/money";
-import type { TradeProfile } from "@/lib/trade/profile";
+import { jobReturnFrom } from "@/lib/nav/job-return";
+import { jobDetailTabsFor, type TradeProfile } from "@/lib/trade/profile";
+import { surfaceCard } from "@/lib/ui/surface";
+import { cn } from "@/lib/utils";
 import { remainingDue } from "@/lib/work-orders/money";
 import { isSampleWorkOrder } from "@/lib/work-orders/is-sample";
 import { workOrderLabel } from "@/lib/work-orders/display";
@@ -45,24 +48,20 @@ export function WorkshopJobDetail({
   ctx,
   job,
   profile,
-  mediaUrls,
-  mechanics,
-  historyRows,
-  historySchemaMissing,
-  activeMembershipId,
+  mediaSection,
+  assignSection,
   nextServiceDateLabel,
   existing,
+  from,
 }: {
   ctx: SessionContext;
   job: WorkOrderDetail;
   profile: TradeProfile;
-  mediaUrls: Record<string, string>;
-  mechanics: TeamMember[];
-  historyRows: AssignmentHistoryRow[];
-  historySchemaMissing: boolean;
-  activeMembershipId: string | null;
+  mediaSection: ReactNode;
+  assignSection: ReactNode;
   nextServiceDateLabel: string;
   existing?: string;
+  from?: string;
 }) {
   const customerLine = [job.customerName, job.customerPhone]
     .filter(Boolean)
@@ -74,17 +73,7 @@ export function WorkshopJobDetail({
     job.nextServiceKm ??
     (job.entryKm != null ? job.entryKm + 10000 : null);
   const sections = profile.jobDetail;
-  const statusLabel =
-    profile.statusLabels[job.status] ??
-    ({
-      intake: "Kabul",
-      waiting_approval: "Onay Bekliyor",
-      in_progress: "İçeride",
-      waiting_parts: "Parça",
-      ready: "Hazır",
-      delivered: "Teslim",
-      cancelled: "İptal",
-    } as const)[job.status];
+  const back = jobReturnFrom(from);
 
   const readyPreview = waReadyVehicleMessage({
     shopName: ctx.workspace.name,
@@ -114,44 +103,41 @@ export function WorkshopJobDetail({
     status: job.status,
   });
 
-  const mediaPanel = (
-    <JobMediaPanel
-      workOrderId={job.id}
-      media={job.media}
-      signedUrls={mediaUrls}
-      schemaMissing={job.faz4SchemaMissing}
-    />
-  );
-
   const summary = (
     <div>
-      <BackLink href="/today" label="Bugün" />
+      <BackLink href={back.href} label={back.label} />
       <div className="mt-1 flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0">
-          <h1 className="font-mono text-2xl tracking-wide">
-            {workOrderLabel(job)}
-          </h1>
-          <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-neutral-600">
+          {job.plate ? (
+            <h1>
+              <LicensePlateBadge plate={job.plate} size="lg" />
+            </h1>
+          ) : (
+            <h1 className="text-2xl font-semibold tracking-tight">
+              {workOrderLabel(job)}
+            </h1>
+          )}
+          <div className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-neutral-600">
+            <StatusBadge status={job.status} tradeKind={profile.kind} />
             {job.displayNo ? (
-              <span className="font-mono text-neutral-500">{job.displayNo}</span>
+              <span className="font-mono text-xs tabular-nums text-neutral-500">
+                {job.displayNo}
+              </span>
             ) : null}
             {job.makeModel ? <span>{job.makeModel}</span> : null}
             {sections.entryKm && job.entryKm != null ? (
-              <span>{job.entryKm.toLocaleString("tr-TR")} km</span>
+              <span className="tabular-nums">
+                {job.entryKm.toLocaleString("tr-TR")} km
+              </span>
             ) : null}
-            <span className="rounded-full bg-neutral-200/80 px-2 py-0.5 text-xs font-medium text-neutral-800">
-              {statusLabel}
-            </span>
           </div>
           <p className="mt-1 text-sm text-neutral-500">
-            Toplam {formatMoney(job.due)} · Kalan{" "}
-            <span className="font-semibold text-neutral-800">
-              {formatMoney(remaining)}
-            </span>
+            Toplam <Money amount={job.due} tone="muted" /> · Kalan{" "}
+            <Money amount={remaining} tone={remaining > 0 ? "debt" : "paid"} />
           </p>
         </div>
-        <Button asChild variant="outline" size="sm">
-          <Link href={`/jobs/${job.id}/print`}>Yazdır / PDF</Link>
+        <Button asChild variant="ghost" size="sm">
+          <Link href={`/jobs/${job.id}/print`}>Yazdır</Link>
         </Button>
       </div>
       {existing === "1" ? (
@@ -169,9 +155,9 @@ export function WorkshopJobDetail({
       ) : null}
 
       {job.status === "cancelled" ? (
-        <div className="flex flex-col gap-2 rounded-2xl border border-neutral-200 bg-white px-4 py-3 text-sm text-neutral-600">
+        <div className={cn(surfaceCard, "flex flex-col gap-2 px-4 py-3 text-sm text-neutral-600")}>
           <p>Bu iş iptal edildi ve Bugün listesinde görünmez.</p>
-          <BackLink href="/today" label="Bugün'e dön" />
+          <BackLink href={back.href} label={`${back.label}'e dön`} />
         </div>
       ) : null}
 
@@ -191,7 +177,61 @@ export function WorkshopJobDetail({
         </div>
       ) : null}
 
-      {sections.mediaFirst ? mediaPanel : null}
+      <section className="flex flex-col gap-2">
+        <h2 className="text-sm font-medium text-neutral-500">Durum</h2>
+        <JobStatusForm
+          id={job.id}
+          status={job.status}
+          remaining={remaining}
+        />
+      </section>
+
+      {job.status === "waiting_approval" ? (
+        <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4">
+          <p className="mb-2 text-sm text-amber-950">
+            Fiyat onayı — WhatsApp ile link gönder.
+          </p>
+          <QuoteApprovalButton
+            workOrderId={job.id}
+            preview={quotePreview}
+            phone={job.customerPhone}
+            shopName={ctx.workspace.name}
+            plate={job.plate}
+            quoteLabel={formatMoney(hasItems ? itemsTotal : 0)}
+            shopPhone={ctx.workspace.settings.phone}
+          />
+        </div>
+      ) : job.customerPhone ? (
+        <div
+          className={
+            job.status === "ready"
+              ? "rounded-2xl border border-emerald-200 bg-emerald-50 p-4"
+              : cn(surfaceCard, "p-4")
+          }
+        >
+          <p className="mb-2 text-sm text-neutral-600">
+            {job.status === "ready"
+              ? "Araç hazır — müşteriye haber ver."
+              : "Müşteriye WhatsApp mesajı."}
+          </p>
+          <WhatsAppShareButton
+            workOrderId={job.id}
+            preview={readyPreview}
+            phone={job.customerPhone}
+            label={
+              job.status === "ready"
+                ? "Müşteriye WhatsApp — araç hazır"
+                : "WhatsApp gönder"
+            }
+            emphasized={job.status === "ready"}
+          />
+          <p className="mt-2 text-xs text-neutral-500">
+            WhatsApp açılıp mesajı sen gönderirsin. Otomatik API yok.
+          </p>
+        </div>
+      ) : null}
+
+      {sections.mediaFirst ? mediaSection : null}
 
       {needsIntakeComplete ? (
         <JobIntakeCompleteForm
@@ -204,7 +244,7 @@ export function WorkshopJobDetail({
           mode="workshop"
         />
       ) : (
-        <dl className="rounded-2xl border border-neutral-200 bg-white px-4 py-3 text-sm">
+        <dl className={cn(surfaceCard, "px-4 py-3 text-sm")}>
           <div className="flex justify-between gap-3 py-1.5">
             <dt className="text-neutral-500">Müşteri</dt>
             <dd>
@@ -223,7 +263,9 @@ export function WorkshopJobDetail({
           {sections.entryKm && job.entryKm != null ? (
             <div className="flex justify-between gap-3 py-1.5">
               <dt className="text-neutral-500">Giriş KM</dt>
-              <dd>{job.entryKm.toLocaleString("tr-TR")}</dd>
+              <dd className="tabular-nums">
+                {job.entryKm.toLocaleString("tr-TR")}
+              </dd>
             </div>
           ) : null}
           {job.complaint ? (
@@ -244,56 +286,16 @@ export function WorkshopJobDetail({
         />
       ) : null}
 
-      <JobAssignPanel
-        workOrderId={job.id}
-        mechanics={mechanics}
-        currentMembershipId={activeMembershipId}
-        history={historyRows}
-        schemaMissing={historySchemaMissing}
-      />
+      {assignSection}
 
-      <section className="flex flex-col gap-2">
-        <h2 className="text-sm font-medium text-neutral-500">Durum</h2>
-        <JobStatusForm
-          id={job.id}
-          status={job.status}
-          remaining={remaining}
-        />
-      </section>
-
-      {job.customerPhone ? (
-        <div
-          className={
-            job.status === "ready"
-              ? "rounded-2xl border border-emerald-200 bg-emerald-50 p-4"
-              : "rounded-2xl border border-neutral-200 bg-white p-4"
-          }
-        >
-          <p className="mb-2 text-sm text-neutral-600">
-            {job.status === "ready"
-              ? "Araç hazır — müşteriye haber ver."
-              : "Müşteriye WhatsApp mesajı."}
-          </p>
-          <WhatsAppShareButton
-            workOrderId={job.id}
-            preview={readyPreview}
-            phone={job.customerPhone}
-            label="Müşteriye WhatsApp — araç hazır"
-            emphasized={job.status === "ready"}
-          />
-          <p className="mt-2 text-xs text-neutral-500">
-            WhatsApp açılıp mesajı sen gönderirsin. Otomatik API yok.
-          </p>
-        </div>
-      ) : null}
-
-      {!sections.mediaFirst ? mediaPanel : null}
+      {!sections.mediaFirst ? mediaSection : null}
     </>
   );
 
   return (
     <JobDetailTabs
       summary={summary}
+      tabs={jobDetailTabsFor(profile.kind)}
       panels={{
         ozet,
         is: (

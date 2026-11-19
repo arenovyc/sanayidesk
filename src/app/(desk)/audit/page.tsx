@@ -2,6 +2,7 @@ import { Suspense } from "react";
 import { PageSkeleton } from "@/components/ui/skeleton";
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { PageHeader } from "@/components/shells/page-header";
 import { requireDeskSession } from "@/lib/auth/get-membership";
 import { listAudit, type AuditActionFilter } from "@/lib/data/ops";
 
@@ -31,7 +32,7 @@ export default function AuditPage({
   searchParams: Promise<{ action?: string }>;
 }) {
   return (
-    <Suspense fallback={null}>
+    <Suspense fallback={<PageSkeleton />}>
       <AuditBody searchParams={searchParams} />
     </Suspense>
   );
@@ -53,7 +54,11 @@ async function AuditBody({
 
   return (
     <div className="flex flex-col gap-4">
-      <h1 className="text-xl font-semibold">İşlem geçmişi</h1>
+      <PageHeader
+        title="İşlem geçmişi"
+        backHref="/more"
+        backLabel="Daha fazla"
+      />
       <ul className="flex flex-wrap gap-2">
         {FILTERS.map((item) => (
           <li key={item.id}>

@@ -26,7 +26,7 @@ export function WhatsAppShareButton({
       disabled={pending}
       className={
         emphasized
-          ? "inline-flex h-11 w-full items-center justify-center rounded-lg bg-emerald-700 px-4 text-sm font-medium text-white disabled:opacity-50"
+          ? "inline-flex min-h-12 w-full items-center justify-center rounded-xl bg-emerald-700 px-4 text-sm font-medium text-white disabled:opacity-50"
           : "text-sm font-medium underline-offset-4 hover:underline disabled:opacity-50"
       }
       onClick={() => {

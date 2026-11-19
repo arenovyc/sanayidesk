@@ -37,8 +37,9 @@ function mapMoneyError(message: string): string {
   return message;
 }
 
+/** Only the job page — avoid layout-wide refresh that re-hits auth + nav. */
 function softRefreshJob(workOrderId: string) {
-  revalidatePath(`/jobs/${workOrderId}`);
+  revalidatePath(`/jobs/${workOrderId}`, "page");
 }
 
 export async function addWorkOrderItemAction(

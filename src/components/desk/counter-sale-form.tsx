@@ -1,6 +1,7 @@
 "use client";
 
-import { useActionState, useMemo, useState } from "react";
+import { useActionState, useEffect, useMemo, useState } from "react";
+import { toastError } from "@/lib/ui/toast";
 import {
   counterSaleAction,
   type CounterActionState,
@@ -28,6 +29,10 @@ export function CounterSaleForm({
   stockItems: SaleStockItem[];
 }) {
   const [state, action, pending] = useActionState(counterSaleAction, initial);
+
+  useEffect(() => {
+    if (state.error) toastError(state.error);
+  }, [state]);
   const [title, setTitle] = useState("");
   const [itemId, setItemId] = useState("");
   const [qty, setQty] = useState("1");
@@ -42,7 +47,7 @@ export function CounterSaleForm({
   return (
     <form
       action={action}
-      className="flex flex-col gap-3 rounded-2xl border border-neutral-200 bg-white p-4"
+      className="flex flex-col gap-3 rounded-2xl border border-neutral-200/80 bg-white p-4 shadow-sm"
     >
       <QuickPresets
         presets={presets}
@@ -168,7 +173,7 @@ export function CounterSaleForm({
           {state.error}
         </p>
       ) : null}
-      <Button type="submit" disabled={pending}>
+      <Button type="submit" size="lg" className="min-h-12 rounded-xl" disabled={pending}>
         {pending ? "…" : "Çıkış kaydet"}
       </Button>
     </form>

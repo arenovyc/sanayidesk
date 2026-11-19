@@ -2,6 +2,7 @@ import { Suspense } from "react";
 import { redirect } from "next/navigation";
 import { RegisterForm } from "@/components/auth/register-form";
 import { Card } from "@/components/ui/card";
+import { PageSkeleton } from "@/components/ui/skeleton";
 import { getAuthUser, getSessionContext } from "@/lib/auth/get-membership";
 import { homeForRole } from "@/lib/auth/roles";
 import { TRIAL_DAYS } from "@/lib/pricing";
@@ -13,7 +14,7 @@ export default function RegisterPage({
   searchParams: Promise<{ tur?: string }>;
 }) {
   return (
-    <Suspense fallback={<p className="text-sm text-neutral-500">Yükleniyor…</p>}>
+    <Suspense fallback={<PageSkeleton />}>
       <RegisterBody searchParams={searchParams} />
     </Suspense>
   );

@@ -143,7 +143,9 @@ export function PinForm() {
       </div>
       {state.error ? (
         <p className="text-sm text-red-700" role="alert">
-          {state.error}
+          {state.error.includes("PIN")
+            ? "PIN hatalı — 4 haneyi yeniden gir."
+            : state.error}
         </p>
       ) : null}
       <Button

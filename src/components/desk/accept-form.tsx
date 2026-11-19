@@ -1,6 +1,7 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useEffect } from "react";
+import { toastError } from "@/lib/ui/toast";
 import {
   acceptWorkOrderAction,
   type JobActionState,
@@ -22,6 +23,10 @@ export function AcceptForm({
 }) {
   const [state, action, pending] = useActionState(acceptWorkOrderAction, initial);
 
+  useEffect(() => {
+    if (state.error) toastError(state.error);
+  }, [state]);
+
   return (
     <form action={action} className="flex flex-col gap-4">
       <div className={extraFields ? "flex flex-col gap-1.5" : "flex gap-2"}>
@@ -39,7 +44,7 @@ export function AcceptForm({
           className="font-mono text-lg tracking-wider uppercase"
         />
         {extraFields ? null : (
-          <Button type="submit" size="lg" disabled={pending}>
+          <Button type="submit" size="lg" className="min-h-12 rounded-xl" disabled={pending}>
             {pending ? "…" : "Kabul"}
           </Button>
         )}
@@ -64,7 +69,7 @@ export function AcceptForm({
               className="w-full rounded-lg border border-neutral-200 bg-white px-3 py-2 text-base text-neutral-950 outline-none placeholder:text-neutral-400 focus:border-neutral-950 focus:ring-2 focus:ring-neutral-950/10"
             />
           </div>
-          <Button type="submit" size="lg" disabled={pending}>
+          <Button type="submit" size="lg" className="min-h-12 rounded-xl" disabled={pending}>
             {pending ? "Açılıyor…" : "İş emri aç"}
           </Button>
         </>

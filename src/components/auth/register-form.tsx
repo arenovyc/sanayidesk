@@ -160,7 +160,7 @@ export function RegisterForm({
             ) : null}
           </div>
         ) : null}
-        <Button type="submit" disabled={pending}>
+        <Button type="submit" size="lg" className="min-h-12 rounded-xl" disabled={pending}>
           {pending ? "Açılıyor…" : "Dükkanı aç"}
         </Button>
       </form>

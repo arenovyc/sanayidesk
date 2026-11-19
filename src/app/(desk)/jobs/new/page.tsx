@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import { PageSkeleton } from "@/components/ui/skeleton";
 import { AcceptForm } from "@/components/desk/accept-form";
 import { PageHeader } from "@/components/shells/page-header";
 import { requireDeskSession } from "@/lib/auth/get-membership";
@@ -10,7 +11,7 @@ export default function NewJobPage({
   searchParams: Promise<{ plate?: string; complaint?: string }>;
 }) {
   return (
-    <Suspense fallback={null}>
+    <Suspense fallback={<PageSkeleton />}>
       <NewJobBody searchParams={searchParams} />
     </Suspense>
   );

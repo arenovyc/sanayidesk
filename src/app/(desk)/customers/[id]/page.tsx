@@ -4,8 +4,10 @@ import { PageHeader } from "@/components/shells/page-header";
 import { notFound } from "next/navigation";
 import { requireDeskSession } from "@/lib/auth/get-membership";
 import { getCustomer } from "@/lib/data/customers";
+import { JobRow } from "@/components/desk/job-row";
+import { Money } from "@/components/ui/money";
+import { PageSkeleton } from "@/components/ui/skeleton";
 import { formatMoney } from "@/lib/format/money";
-import { STATUS_LABELS } from "@/lib/work-orders/status";
 
 export default function CustomerDetailPage({
   params,
@@ -13,7 +15,7 @@ export default function CustomerDetailPage({
   params: Promise<{ id: string }>;
 }) {
   return (
-    <Suspense fallback={null}>
+    <Suspense fallback={<PageSkeleton />}>
       <CustomerBody params={params} />
     </Suspense>
   );
@@ -36,9 +38,10 @@ async function CustomerBody({ params }: { params: Promise<{ id: string }> }) {
       <div>
         <p className="mt-2 text-sm">
           Bakiye{" "}
-          <span className={customer.balance > 0 ? "font-semibold text-red-700" : "font-semibold"}>
-            {formatMoney(customer.balance)}
-          </span>
+          <Money
+            amount={customer.balance}
+            tone={customer.balance > 0 ? "debt" : "default"}
+          />
         </p>
       </div>
 
@@ -47,31 +50,10 @@ async function CustomerBody({ params }: { params: Promise<{ id: string }> }) {
         {customer.jobs.length === 0 ? (
           <p className="text-sm text-neutral-400">İş yok.</p>
         ) : (
-          <ul className="divide-y divide-neutral-200 overflow-hidden rounded-2xl border border-neutral-200 bg-white">
+          <ul className="flex flex-col gap-2">
             {customer.jobs.map((job) => (
               <li key={job.id}>
-                <Link
-                  href={`/jobs/${job.id}`}
-                  className="flex justify-between px-4 py-3 text-sm"
-                >
-                  <span>
-                    <span
-                      className={
-                        job.counterTitle
-                          ? "font-medium"
-                          : "font-mono tracking-wide"
-                      }
-                    >
-                      {job.counterTitle?.trim() || job.plate || "—"}
-                    </span>
-                    {job.displayNo ? (
-                      <span className="ml-2 font-mono text-xs text-neutral-500">
-                        {job.displayNo}
-                      </span>
-                    ) : null}
-                  </span>
-                  <span className="text-neutral-500">{STATUS_LABELS[job.status]}</span>
-                </Link>
+                <JobRow job={job} from={`/customers/${customer.id}`} />
               </li>
             ))}
           </ul>

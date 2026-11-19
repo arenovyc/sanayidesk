@@ -1,9 +1,12 @@
+import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import { CounterJobDetail } from "@/components/desk/counter-job-detail";
+import {
+  JobAssignSection,
+  JobMediaSection,
+} from "@/components/desk/job-detail-secondary";
 import { WorkshopJobDetail } from "@/components/desk/workshop-job-detail";
 import { requireDeskSession } from "@/lib/auth/get-membership";
-import { listAssignmentHistory } from "@/lib/data/assignments";
-import { signedMediaUrls } from "@/lib/data/media-urls";
 import { listTeam } from "@/lib/data/ops";
 import { getWorkOrderDetail } from "@/lib/data/work-orders";
 import { formatIstanbulDate } from "@/lib/format/date";
@@ -11,54 +14,83 @@ import { requestNow } from "@/lib/time/request-now";
 import { isCounterTrade } from "@/lib/trade/kinds";
 import { getTradeProfile } from "@/lib/trade/profile";
 
+function SecondaryFallback() {
+  return (
+    <div className="h-24 animate-pulse rounded-2xl border border-neutral-200/80 bg-neutral-100/80" />
+  );
+}
+
 export default async function JobDetailPage({
   params,
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ existing?: string; tab?: string }>;
+  searchParams: Promise<{ existing?: string; tab?: string; from?: string }>;
 }) {
   const ctx = await requireDeskSession();
   const { id } = await params;
   const query = await searchParams;
-  const job = await getWorkOrderDetail(ctx.workspace.id, id);
+  const counterTrade = isCounterTrade(ctx.workspace.tradeKind);
+  const [job, team, now] = await Promise.all([
+    getWorkOrderDetail(ctx.workspace.id, id),
+    counterTrade
+      ? Promise.resolve([] as Awaited<ReturnType<typeof listTeam>>)
+      : listTeam(ctx.workspace.id),
+    requestNow(),
+  ]);
   if (!job) notFound();
 
   const profile = getTradeProfile(ctx.workspace.tradeKind);
 
-  if (isCounterTrade(ctx.workspace.tradeKind) || Boolean(job.counterTitle)) {
-    return <CounterJobDetail ctx={ctx} job={job} profile={profile} />;
+  if (counterTrade || Boolean(job.counterTitle)) {
+    return (
+      <CounterJobDetail
+        ctx={ctx}
+        job={job}
+        profile={profile}
+        from={query.from}
+      />
+    );
   }
-
-  const [mediaUrls, team, historyRes] = await Promise.all([
-    signedMediaUrls(job.media),
-    listTeam(ctx.workspace.id),
-    listAssignmentHistory(ctx.workspace.id, id),
-  ]);
 
   const mechanics = team.filter(
     (member) => member.role === "mechanic" && member.isActive,
   );
-  const active = historyRes.rows.find((row) => !row.unassignedAt) ?? null;
-  const now = await requestNow();
   const nextServiceDateLabel = (() => {
     const d = new Date(now.getTime());
     d.setMonth(d.getMonth() + 10);
     return formatIstanbulDate(d);
   })();
 
+  const mediaSection = (
+    <Suspense fallback={<SecondaryFallback />}>
+      <JobMediaSection
+        workOrderId={job.id}
+        media={job.media}
+        schemaMissing={job.faz4SchemaMissing}
+      />
+    </Suspense>
+  );
+  const assignSection = (
+    <Suspense fallback={<SecondaryFallback />}>
+      <JobAssignSection
+        workspaceId={ctx.workspace.id}
+        workOrderId={job.id}
+        mechanics={mechanics}
+      />
+    </Suspense>
+  );
+
   return (
     <WorkshopJobDetail
       ctx={ctx}
       job={job}
       profile={profile}
-      mediaUrls={mediaUrls}
-      mechanics={mechanics}
-      historyRows={historyRes.rows}
-      historySchemaMissing={historyRes.schemaMissing}
-      activeMembershipId={active?.membershipId ?? null}
+      mediaSection={mediaSection}
+      assignSection={assignSection}
       nextServiceDateLabel={nextServiceDateLabel}
       existing={query.existing}
+      from={query.from}
     />
   );
 }

@@ -37,7 +37,7 @@ export function OnboardingChecklist({ steps }: { steps: OnboardingStep[] }) {
   }
 
   return (
-    <div className="rounded-2xl border border-neutral-200 bg-white px-4 py-3">
+    <div className="rounded-2xl border border-neutral-200/80 bg-white px-4 py-3 shadow-sm">
       <p className="text-sm font-medium text-neutral-950">İlk adımlar</p>
       <ul className="mt-2 flex flex-col gap-2">
         {remaining.map((step) => (

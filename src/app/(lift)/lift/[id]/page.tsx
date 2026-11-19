@@ -1,16 +1,18 @@
 import { Suspense } from "react";
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import { StaffMediaForm } from "@/components/lift/staff-media-form";
 import { StaffPartsRequestForm } from "@/components/lift/staff-parts-request-form";
 import { StaffStatusForm } from "@/components/lift/staff-status-form";
 import { StaffWhatsAppShare } from "@/components/lift/staff-whatsapp-share";
+import { BackLink } from "@/components/shells/back-link";
+import { LicensePlateBadge } from "@/components/ui/license-plate-badge";
+import { PageSkeleton } from "@/components/ui/skeleton";
 import { SchemaHintBanner } from "@/components/ui/schema-hint-banner";
+import { StatusBadge } from "@/components/ui/status-badge";
 import { requireLiftSession } from "@/lib/auth/get-membership";
 import { listStaffJobMedia } from "@/lib/data/staff-media";
 import { getStaffJob, listOpenParts } from "@/lib/data/staff-work";
 import { waPartsVendorMessage } from "@/lib/format/wa-templates";
-import { STATUS_LABELS } from "@/lib/work-orders/status";
 
 export default function LiftJobPage({
   params,
@@ -18,7 +20,7 @@ export default function LiftJobPage({
   params: Promise<{ id: string }>;
 }) {
   return (
-    <Suspense fallback={<p className="text-sm text-neutral-500">Yükleniyor…</p>}>
+    <Suspense fallback={<PageSkeleton />}>
       <LiftJobBody params={params} />
     </Suspense>
   );
@@ -44,19 +46,21 @@ async function LiftJobBody({ params }: { params: Promise<{ id: string }> }) {
   return (
     <div className="flex flex-col gap-5">
       <div>
-        <p className="text-sm text-neutral-500">
-          <Link href="/lift" className="hover:underline">
-            Liftim
-          </Link>
-        </p>
-        <h1 className="mt-1 font-mono text-3xl tracking-wide">{job.plate}</h1>
-        {job.displayNo ? (
-          <p className="mt-1 font-mono text-sm text-neutral-500">{job.displayNo}</p>
-        ) : null}
+        <BackLink href="/lift" label="Liftim" />
+        <h1 className="mt-2">
+          <LicensePlateBadge plate={job.plate} size="lg" />
+        </h1>
+        <div className="mt-2 flex flex-wrap items-center gap-2">
+          <StatusBadge status={job.status} />
+          {job.displayNo ? (
+            <span className="font-mono text-sm tabular-nums text-neutral-500">
+              {job.displayNo}
+            </span>
+          ) : null}
+        </div>
         {job.assigneeName ? (
           <p className="mt-1 text-sm text-neutral-500">Usta: {job.assigneeName}</p>
         ) : null}
-        <p className="mt-1 text-sm text-neutral-600">{STATUS_LABELS[job.status]}</p>
         {job.complaint ? (
           <p className="mt-2 text-sm text-neutral-500">{job.complaint}</p>
         ) : null}

@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import { PageSkeleton } from "@/components/ui/skeleton";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { PrintFormatToggle } from "@/components/desk/print-format-toggle";
@@ -29,7 +30,7 @@ export default function JobPrintPage({
   params: Promise<{ id: string }>;
 }) {
   return (
-    <Suspense fallback={null}>
+    <Suspense fallback={<PageSkeleton />}>
       <JobPrintBody params={params} />
     </Suspense>
   );

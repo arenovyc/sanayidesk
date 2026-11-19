@@ -260,11 +260,13 @@ export async function getStatusBoard(
     waiting_parts: [] as BoardCard[],
     ready: [] as BoardCard[],
   };
-  const { jobs } = await getTodayBoard(workspaceId);
-  const [assignments, money] = await Promise.all([
+  const [today, assignments, money, renderedAtMs] = await Promise.all([
+    getTodayBoard(workspaceId),
     listActiveAssignments(workspaceId),
     listMoneyOpen(workspaceId),
+    requestNowMs(),
   ]);
+  const { jobs } = today;
   const schemaMissing = assignments.schemaMissing || money.schemaMissing;
   const assignByWo = new Map(
     assignments.rows.map((row) => [row.workOrderId, row]),
@@ -276,7 +278,6 @@ export async function getStatusBoard(
     filters?.status && isWorkOrderStatus(filters.status)
       ? boardColumnForStatus(filters.status)
       : null;
-  const renderedAtMs = await requestNowMs();
 
   for (const job of jobs) {
     const column = boardColumnForStatus(job.status);
@@ -458,42 +459,44 @@ export async function getWorkOrderDetail(
   workspaceId: string,
   id: string,
 ): Promise<WorkOrderDetail | null> {
-  const job = await getWorkOrder(workspaceId, id);
-  if (!job) return null;
   const supabase = await createServerSupabase();
   if (!supabase) return null;
 
-  const [itemsRes, paymentsRes, partsRes, mediaRes, extraRes] = await Promise.all([
-    supabase
-      .from("work_order_items")
-      .select("id, kind, description, amount")
-      .eq("work_order_id", id)
-      .order("created_at", { ascending: true }),
-    supabase
-      .from("payments")
-      .select(
-        "id, amount, method, invoice_mode, paid_at, note, work_order_id, voided_at",
-      )
-      .eq("work_order_id", id)
-      .order("paid_at", { ascending: false }),
-    supabase
-      .from("part_requests")
-      .select("id, description, status")
-      .eq("work_order_id", id)
-      .order("created_at", { ascending: false }),
-    supabase
-      .from("media")
-      .select("id, storage_path, content_type, byte_size, created_at, tag")
-      .eq("work_order_id", id)
-      .order("created_at", { ascending: false }),
-    supabase
-      .from("work_orders")
-      .select(
-        "quote_amount, entry_km, next_service_km, public_token, approved_at, customer_approval_note, approval_question_at, vehicle_checkup",
-      )
-      .eq("id", id)
-      .maybeSingle(),
-  ]);
+  // Fan-out starts with the header row — do not wait for getWorkOrder first.
+  const [job, itemsRes, paymentsRes, partsRes, mediaRes, extraRes] =
+    await Promise.all([
+      getWorkOrder(workspaceId, id),
+      supabase
+        .from("work_order_items")
+        .select("id, kind, description, amount")
+        .eq("work_order_id", id)
+        .order("created_at", { ascending: true }),
+      supabase
+        .from("payments")
+        .select(
+          "id, amount, method, invoice_mode, paid_at, note, work_order_id, voided_at",
+        )
+        .eq("work_order_id", id)
+        .order("paid_at", { ascending: false }),
+      supabase
+        .from("part_requests")
+        .select("id, description, status")
+        .eq("work_order_id", id)
+        .order("created_at", { ascending: false }),
+      supabase
+        .from("media")
+        .select("id, storage_path, content_type, byte_size, created_at, tag")
+        .eq("work_order_id", id)
+        .order("created_at", { ascending: false }),
+      supabase
+        .from("work_orders")
+        .select(
+          "quote_amount, entry_km, next_service_km, public_token, approved_at, customer_approval_note, approval_question_at, vehicle_checkup",
+        )
+        .eq("id", id)
+        .maybeSingle(),
+    ]);
+  if (!job) return null;
 
   const paymentTableMissing =
     paymentsRes.error &&

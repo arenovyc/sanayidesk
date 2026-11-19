@@ -16,7 +16,7 @@ export default function B2bPartyPage({
   params: Promise<{ partyId: string }>;
 }) {
   return (
-    <Suspense fallback={null}>
+    <Suspense fallback={<PageSkeleton />}>
       <B2bPartyBody params={params} />
     </Suspense>
   );

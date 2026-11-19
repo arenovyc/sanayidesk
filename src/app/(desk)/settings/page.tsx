@@ -11,7 +11,7 @@ import { getTradeProfile } from "@/lib/trade/profile";
 
 export default function SettingsPage() {
   return (
-    <Suspense fallback={null}>
+    <Suspense fallback={<PageSkeleton />}>
       <SettingsBody />
     </Suspense>
   );

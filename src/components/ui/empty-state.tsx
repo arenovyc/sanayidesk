@@ -16,7 +16,7 @@ export function EmptyState({
   actionLabel?: string;
 }) {
   return (
-    <div className="flex flex-col items-center rounded-2xl border border-dashed border-neutral-200 bg-white px-6 py-10 text-center">
+    <div className="flex flex-col items-center rounded-2xl border border-dashed border-neutral-200/80 bg-white px-6 py-10 text-center shadow-sm">
       {Icon ? (
         <Icon className="mb-3 size-8 text-neutral-300" aria-hidden />
       ) : null}

@@ -48,7 +48,7 @@ function WorkspaceAdminCard({ row }: { row: AdminWorkspaceRow }) {
   const error = extendState.error ?? activateState.error;
 
   return (
-    <li className="rounded-2xl border border-neutral-200 bg-white p-4">
+    <li className="rounded-2xl border border-neutral-200/80 bg-white p-4 shadow-sm">
       <div className="mb-3 flex items-start justify-between gap-2">
         <div>
           <p className="font-medium">{row.name}</p>
@@ -110,11 +110,11 @@ function WorkspaceAdminCard({ row }: { row: AdminWorkspaceRow }) {
         </div>
         <div className="mt-1 grid grid-cols-3 gap-2 rounded-xl bg-neutral-50 px-3 py-2 text-center text-xs">
           <div>
-            <p className="font-semibold text-neutral-950">{row.workOrderCount}</p>
+            <p className="font-semibold tabular-nums text-neutral-950">{row.workOrderCount}</p>
             <p className="text-neutral-500">İş emri</p>
           </div>
           <div>
-            <p className="font-semibold text-neutral-950">{row.mechanicCount}</p>
+            <p className="font-semibold tabular-nums text-neutral-950">{row.mechanicCount}</p>
             <p className="text-neutral-500">Usta</p>
           </div>
           <div>

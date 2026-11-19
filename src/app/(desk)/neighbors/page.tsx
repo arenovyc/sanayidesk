@@ -2,7 +2,10 @@ import Link from "next/link";
 import { NeighborInbox, NeighborInAppAskForm, NeighborWaAskForm } from "@/components/desk/neighbors-forms";
 import { SharedPlatePanel } from "@/components/desk/shared-plate-panel";
 import { PageHeader } from "@/components/shells/page-header";
+import { Money } from "@/components/ui/money";
 import { SchemaHintBanner } from "@/components/ui/schema-hint-banner";
+import { surfaceCard } from "@/lib/ui/surface";
+import { cn } from "@/lib/utils";
 import { requireDeskSession } from "@/lib/auth/get-membership";
 import { listPartyBalances } from "@/lib/data/b2b";
 import { listNetworkShops } from "@/lib/data/network";
@@ -59,6 +62,25 @@ export default async function NeighborsPage({
         description="Rehber, SanayiDesk ağı, plaka sor, stok transfer ve cari — tek yer."
       />
 
+      <nav className="flex flex-wrap gap-2" aria-label="Komşular bölümleri">
+        {(
+          [
+            ["#rehber", "Rehber"],
+            ["#ag", "Ağ"],
+            ["#sor", "Sor"],
+            ["#gelen", "Gelen"],
+          ] as const
+        ).map(([href, label]) => (
+          <a
+            key={href}
+            href={href}
+            className="rounded-full border border-neutral-200 bg-white px-3 py-1.5 text-xs font-medium text-neutral-700 shadow-sm hover:border-neutral-400"
+          >
+            {label}
+          </a>
+        ))}
+      </nav>
+
       <section id="rehber" className="flex flex-col gap-3 scroll-mt-24">
         <h2 className="text-sm font-medium text-neutral-500">Rehberim</h2>
         {directory.length === 0 ? (
@@ -70,7 +92,7 @@ export default async function NeighborsPage({
             veya aşağıdan WhatsApp ile sor — gölge cari açılır.
           </p>
         ) : (
-          <ul className="divide-y divide-neutral-200 overflow-hidden rounded-2xl border border-neutral-200 bg-white text-sm">
+          <ul className={cn(surfaceCard, "divide-y divide-neutral-100 text-sm")}>
             {directory.slice(0, 8).map((c) => (
               <li key={c.id} className="flex justify-between px-4 py-2.5">
                 <span>{c.name}</span>
@@ -115,35 +137,50 @@ export default async function NeighborsPage({
           <SchemaHintBanner missing quietProd />
         ) : shops.length === 0 ? (
           <p className="text-sm text-neutral-500">
-            Ağda görünür başka dükkan yok. Ayarlardan “Ağda görün” açabilirsin.
+            Henüz başka SanayiDesk dükkanı yok. Rehberden WhatsApp ile sor.
+            Kayıtlı dükkanlar Ayarlar’dan “Ağda görün” açınca burada çıkar.
           </p>
         ) : (
-          <ul className="divide-y divide-neutral-200 overflow-hidden rounded-2xl border border-neutral-200 bg-white text-sm">
-            {shops.map((s) => (
-              <li key={s.id} className="px-4 py-2.5">
-                <div className="flex flex-wrap items-baseline justify-between gap-2">
-                  <p className="font-medium">{s.name}</p>
-                  <span className="rounded-full bg-neutral-100 px-2 py-0.5 text-[11px] font-medium text-neutral-600">
-                    {tradeKindLabel(s.tradeKind)}
-                  </span>
-                </div>
-                <p className="text-xs text-neutral-400">
-                  {s.cityDistrict || s.slug}
-                  {s.phone ? ` · ${s.phone}` : null}
-                </p>
-              </li>
-            ))}
+          <ul className={cn(surfaceCard, "divide-y divide-neutral-100 text-sm")}>
+            {shops.map((s) => {
+              const nearby = profile.complementaryTrades.includes(
+                s.tradeKind as (typeof TRADE_KINDS)[number],
+              );
+              return (
+                <li key={s.id} className="px-4 py-2.5">
+                  <div className="flex flex-wrap items-baseline justify-between gap-2">
+                    <p className="font-medium">{s.name}</p>
+                    <span className="flex flex-wrap items-center gap-1">
+                      {nearby ? (
+                        <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-[11px] font-medium text-emerald-800 ring-1 ring-emerald-600/15">
+                          Sana yakın
+                        </span>
+                      ) : null}
+                      <span className="rounded-full bg-neutral-100 px-2 py-0.5 text-[11px] font-medium text-neutral-600">
+                        {tradeKindLabel(s.tradeKind)}
+                      </span>
+                    </span>
+                  </div>
+                  <p className="text-xs text-neutral-400">
+                    {s.cityDistrict || s.slug}
+                    {s.phone ? ` · ${s.phone}` : null}
+                  </p>
+                </li>
+              );
+            })}
           </ul>
         )}
         <NeighborInAppAskForm shops={network.rows} />
       </section>
 
       {profile.family === "workshop" ? (
-        <section className="flex flex-col gap-3">
+        <section id="sor" className="flex flex-col gap-3 scroll-mt-24">
           <h2 className="text-sm font-medium text-neutral-500">Plaka sor</h2>
           <SharedPlatePanel />
         </section>
-      ) : null}
+      ) : (
+        <section id="sor" className="scroll-mt-24" />
+      )}
 
       <section className="flex flex-col gap-2">
         <h2 className="text-sm font-medium text-neutral-500">Stok & cari</h2>
@@ -168,19 +205,19 @@ export default async function NeighborsPage({
           </Link>
         </div>
         {!balances.schemaMissing && balances.rows.length > 0 ? (
-          <ul className="mt-2 divide-y divide-neutral-200 overflow-hidden rounded-2xl border border-neutral-200 bg-white text-sm">
+          <ul className={cn(surfaceCard, "mt-2 divide-y divide-neutral-100 text-sm")}>
             {balances.rows.slice(0, 5).map((b) => (
               <li key={b.partyId} className="flex justify-between px-4 py-2.5">
                 <span>{b.partyName}</span>
-                <span className="font-mono text-neutral-500">{b.net}</span>
+                <Money amount={b.net} tone={Number(b.net) > 0 ? "debt" : "muted"} />
               </li>
             ))}
           </ul>
         ) : null}
       </section>
 
-      <section className="flex flex-col gap-3">
-        <h2 className="text-sm font-medium text-neutral-500">Gelen kutusu</h2>
+      <section id="gelen" className="flex flex-col gap-3 scroll-mt-24">
+          <h2 className="text-sm font-medium text-neutral-500">Gelen kutusu</h2>
         {requests.schemaMissing ? (
           <SchemaHintBanner missing quietProd />
         ) : (

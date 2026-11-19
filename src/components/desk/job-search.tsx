@@ -35,7 +35,7 @@ export function JobSearch({ placeholder }: { placeholder?: string }) {
       <button
         type="submit"
         disabled={pending}
-        className="rounded-lg border border-neutral-200 bg-white px-3 text-sm font-medium disabled:opacity-50"
+        className="min-h-11 rounded-xl border border-neutral-200 bg-white px-3 text-sm font-medium disabled:opacity-50"
       >
         Ara
       </button>

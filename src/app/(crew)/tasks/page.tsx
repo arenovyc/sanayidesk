@@ -1,11 +1,15 @@
 import { Suspense } from "react";
 import { PartStatusButtons } from "@/components/lift/part-status-buttons";
+import { LicensePlateBadge } from "@/components/ui/license-plate-badge";
+import { PageSkeleton } from "@/components/ui/skeleton";
 import { requireCrewSession } from "@/lib/auth/get-membership";
 import { listOpenParts } from "@/lib/data/staff-work";
+import { surfaceCard } from "@/lib/ui/surface";
+import { cn } from "@/lib/utils";
 
 export default function TasksPage() {
   return (
-    <Suspense fallback={<p className="text-sm text-neutral-500">Yükleniyor…</p>}>
+    <Suspense fallback={<PageSkeleton />}>
       <TasksBody />
     </Suspense>
   );
@@ -25,9 +29,9 @@ async function TasksBody() {
           {parts.map((part) => (
             <li
               key={part.id}
-              className="rounded-xl border border-neutral-200 bg-white px-4 py-3"
+              className={cn(surfaceCard, "px-4 py-3")}
             >
-              <p className="font-mono tracking-wide">{part.plate}</p>
+              <LicensePlateBadge plate={part.plate} size="sm" />
               <p className="mt-1 text-sm">{part.description}</p>
               <div className="mt-3">
                 <PartStatusButtons id={part.id} showOrdered={false} />

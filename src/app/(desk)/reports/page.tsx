@@ -1,6 +1,6 @@
 import { Suspense } from "react";
 import { PageSkeleton } from "@/components/ui/skeleton";
-import Link from "next/link";
+import { PageHeader } from "@/components/shells/page-header";
 import { redirect } from "next/navigation";
 import { requireDeskSession } from "@/lib/auth/get-membership";
 import {
@@ -16,7 +16,7 @@ export default function ReportsPage({
   searchParams: Promise<{ from?: string; to?: string }>;
 }) {
   return (
-    <Suspense fallback={null}>
+    <Suspense fallback={<PageSkeleton />}>
       <ReportsBody searchParams={searchParams} />
     </Suspense>
   );
@@ -43,19 +43,14 @@ async function ReportsBody({
 
   return (
     <div className="flex flex-col gap-5">
-      <div>
-        <p className="text-sm text-neutral-500">
-          <Link href="/more" className="hover:underline">
-            Daha fazla
-          </Link>
-        </p>
-        <h1 className="mt-1 text-xl font-semibold">Raporlar</h1>
-        <p className="mt-1 text-sm text-neutral-500">
-          Gün / dönem özeti (İstanbul saati).
-        </p>
-      </div>
+      <PageHeader
+        title="Raporlar"
+        backHref="/more"
+        backLabel="Daha fazla"
+        description="Gün / dönem özeti (İstanbul saati)."
+      />
 
-      <form className="flex flex-wrap items-end gap-3 rounded-2xl border border-neutral-200 bg-white p-4">
+      <form className="flex flex-wrap items-end gap-3 rounded-2xl border border-neutral-200/80 bg-white p-4 shadow-sm">
         <div className="flex flex-col gap-1">
           <label htmlFor="from" className="text-xs text-neutral-500">
             Başlangıç

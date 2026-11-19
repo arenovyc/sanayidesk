@@ -28,7 +28,7 @@ export function CounterAcceptForm({
   const presets = QUICK_PRESETS[tradeKind];
 
   return (
-    <form action={action} className="flex flex-col gap-3 rounded-2xl border border-neutral-200 bg-white p-4">
+    <form action={action} className="flex flex-col gap-3 rounded-2xl border border-neutral-200/80 bg-white p-4 shadow-sm">
       <QuickPresets
         presets={presets}
         onPick={(text) => setTitle((prev) => (prev ? prev : text))}
@@ -85,7 +85,7 @@ export function CounterAcceptForm({
           {state.error}
         </p>
       ) : null}
-      <Button type="submit" disabled={pending}>
+      <Button type="submit" size="lg" className="min-h-12 rounded-xl" disabled={pending}>
         {pending ? "…" : tradeKind === "torna" ? "İş aç" : "Çıkış kaydet"}
       </Button>
     </form>

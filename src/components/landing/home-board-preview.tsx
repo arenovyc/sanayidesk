@@ -98,9 +98,14 @@ function UsageCard({
     <div className="mx-3 mb-3 rounded-xl border border-white/10 bg-white/[0.04] p-3">
       <div className="flex items-start justify-between gap-2">
         <div>
-          <p className="font-mono text-sm font-medium tracking-wide text-zinc-100">
-            {plate}
-          </p>
+          <span className="inline-flex h-6 overflow-hidden rounded-[4px] border border-zinc-200 bg-white text-[10px] font-semibold text-neutral-950">
+            <span className="flex w-3.5 flex-col items-center justify-center bg-[#003399] text-[7px] font-bold text-white">
+              TR
+            </span>
+            <span className="px-1.5 font-mono tabular-nums tracking-wide">
+              {plate}
+            </span>
+          </span>
           <p className="text-xs text-zinc-500">{vehicle}</p>
           {job ? (
             <p className="mt-0.5 text-xs text-zinc-400">{job}</p>

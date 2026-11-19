@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import { PageSkeleton } from "@/components/ui/skeleton";
 import { InventoryPanel } from "@/components/desk/inventory-forms";
 import { PageHeader } from "@/components/shells/page-header";
 import { SchemaHintBanner } from "@/components/ui/schema-hint-banner";
@@ -13,7 +14,7 @@ import { listNetworkShops } from "@/lib/data/network";
 
 export default function InventoryPage() {
   return (
-    <Suspense fallback={null}>
+    <Suspense fallback={<PageSkeleton />}>
       <InventoryBody />
     </Suspense>
   );

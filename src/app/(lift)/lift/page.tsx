@@ -1,12 +1,18 @@
 import { Suspense } from "react";
 import Link from "next/link";
+import { Car } from "lucide-react";
+import { EmptyState } from "@/components/ui/empty-state";
+import { LicensePlateBadge } from "@/components/ui/license-plate-badge";
+import { PageSkeleton } from "@/components/ui/skeleton";
+import { StatusBadge } from "@/components/ui/status-badge";
 import { requireLiftSession } from "@/lib/auth/get-membership";
 import { listOpenJobsForWorkspace } from "@/lib/data/staff-work";
-import { STATUS_LABELS } from "@/lib/work-orders/status";
+import { surfaceCardInteractive } from "@/lib/ui/surface";
+import { cn } from "@/lib/utils";
 
 export default function LiftPage() {
   return (
-    <Suspense fallback={<p className="text-sm text-neutral-500">Yükleniyor…</p>}>
+    <Suspense fallback={<PageSkeleton />}>
       <LiftBody />
     </Suspense>
   );
@@ -18,31 +24,38 @@ async function LiftBody() {
 
   return (
     <div className="flex flex-col gap-4">
-      <h1 className="text-xl font-semibold">Liftim</h1>
+      <h1 className="text-xl font-semibold tracking-tight">Liftim</h1>
       {jobs.length === 0 ? (
-        <p className="text-sm text-neutral-500">Şu an açık iş yok.</p>
+        <EmptyState
+          icon={Car}
+          title="Şu an açık iş yok"
+          description="Patron atayınca işlerin burada görünür."
+        />
       ) : (
         <ul className="flex flex-col gap-2">
           {jobs.map((job) => (
             <li key={job.id}>
               <Link
                 href={`/lift/${job.id}`}
-                className="flex items-center justify-between rounded-xl border border-neutral-200 bg-white px-4 py-4"
+                className={cn(
+                  surfaceCardInteractive,
+                  "flex min-h-14 items-center justify-between gap-3 px-4 py-3",
+                )}
               >
-                <span>
-                  <span className="font-mono text-lg tracking-wide">{job.plate}</span>
+                <span className="flex min-w-0 flex-col gap-1">
+                  <LicensePlateBadge plate={job.plate} size="sm" />
                   {job.displayNo ? (
-                    <span className="mt-0.5 block font-mono text-xs text-neutral-500">
+                    <span className="font-mono text-xs tabular-nums text-neutral-400">
                       {job.displayNo}
                     </span>
                   ) : null}
                   {job.makeModel ? (
-                    <span className="mt-0.5 block text-xs text-neutral-500">
+                    <span className="truncate text-xs text-neutral-500">
                       {job.makeModel}
                     </span>
                   ) : null}
                 </span>
-                <span className="text-sm text-neutral-500">{STATUS_LABELS[job.status]}</span>
+                <StatusBadge status={job.status} />
               </Link>
             </li>
           ))}

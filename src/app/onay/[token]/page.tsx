@@ -2,7 +2,8 @@ import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import { ApprovalActions } from "@/components/onay/approval-actions";
 import { loadPublicApproval } from "@/lib/data/public-approval";
-import { formatMoney } from "@/lib/format/money";
+import { LicensePlateBadge } from "@/components/ui/license-plate-badge";
+import { Money } from "@/components/ui/money";
 import { MEDIA_TAG_LABELS } from "@/lib/media/tags";
 
 const KIND_LABELS: Record<string, string> = {
@@ -59,7 +60,7 @@ async function PublicApprovalBody({
   return (
     <main className="min-h-dvh bg-neutral-100 px-4 py-8">
       <div className="mx-auto flex w-full max-w-md flex-col gap-5">
-        <header className="rounded-2xl border border-neutral-200 bg-white p-5">
+        <header className="rounded-2xl border border-neutral-200/80 bg-white p-5 shadow-sm">
           <p className="text-xs font-medium uppercase tracking-wide text-neutral-500">
             Teklif onayı
           </p>
@@ -69,9 +70,9 @@ async function PublicApprovalBody({
           {data.shopPhone ? (
             <p className="mt-1 text-sm text-neutral-500">Tel {data.shopPhone}</p>
           ) : null}
-          <p className="mt-4 font-mono text-2xl tracking-wide text-neutral-950">
-            {data.plate}
-          </p>
+          <div className="mt-4">
+            <LicensePlateBadge plate={data.plate} size="lg" />
+          </div>
           <div className="mt-1 flex flex-wrap gap-x-2 gap-y-1 text-sm text-neutral-600">
             {data.makeModel ? <span>{data.makeModel}</span> : null}
             {data.entryKm != null ? (
@@ -100,13 +101,13 @@ async function PublicApprovalBody({
                       {KIND_LABELS[item.kind] ?? item.kind}
                     </span>
                   </span>
-                  <span className="tabular-nums">{formatMoney(item.amount)}</span>
+                  <Money amount={item.amount} />
                 </li>
               ))}
             </ul>
             <p className="flex justify-between border-t border-neutral-200 bg-neutral-50 px-4 py-3 text-sm font-semibold">
               <span>Toplam</span>
-              <span>{formatMoney(data.due)}</span>
+              <Money amount={data.due} />
             </p>
           </section>
         ) : (
