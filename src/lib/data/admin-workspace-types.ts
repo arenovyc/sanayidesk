@@ -15,6 +15,8 @@ export type AdminWorkspaceRow = {
   lastActivityAt: string | null;
   /** Precomputed on the server with request-time now — avoids Date.now() in render. */
   daysLeft: number | null;
+  /** Self-serve müşteri vs seed/canlı demo dükkan. */
+  audience: "customer" | "demo";
 };
 
 export function trialDaysLeft(

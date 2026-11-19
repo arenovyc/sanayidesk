@@ -11,7 +11,11 @@ import { HomeBoardPreview } from "@/components/landing/home-board-preview";
 import { MarketingShell } from "@/components/landing/marketing-shell";
 import { TradePicker } from "@/components/landing/trade-picker";
 import { Button } from "@/components/ui/button";
-import { TRIAL_DAYS } from "@/lib/pricing";
+import {
+  MONTHLY_PRICE_LABEL,
+  PRICE_NOTE,
+  TRIAL_DAYS,
+} from "@/lib/pricing";
 
 type HomeContentProps = {
   sessionLoggedIn: boolean;
@@ -67,7 +71,34 @@ export function HomeContent({
               </Button>
             </div>
 
-            <ul className="mt-6 space-y-2 text-sm text-zinc-400">
+            <div className="mt-6 max-w-md rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-3.5">
+              <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+                <p className="text-sm text-zinc-300">
+                  <span className="font-semibold text-white tabular-nums">
+                    {TRIAL_DAYS} gün
+                  </span>{" "}
+                  ücretsiz
+                </p>
+                <p className="text-sm text-zinc-400">
+                  sonra{" "}
+                  <span className="font-semibold tabular-nums text-white">
+                    {MONTHLY_PRICE_LABEL}
+                  </span>
+                  <span className="text-zinc-500">/ay</span>
+                </p>
+              </div>
+              <p className="mt-1.5 text-xs leading-5 text-zinc-500">
+                {PRICE_NOTE}. Kart yok — dükkanı aç, beğenirsen devam edersin.{" "}
+                <Link
+                  href="/fiyat"
+                  className="text-zinc-400 underline-offset-2 hover:text-zinc-200 hover:underline"
+                >
+                  Fiyat detayı
+                </Link>
+              </p>
+            </div>
+
+            <ul className="mt-5 space-y-2 text-sm text-zinc-400">
               <li className="flex items-start gap-2">
                 <Check className="mt-0.5 size-4 shrink-0 text-emerald-500" />
                 Kart bilgisi gerekmez

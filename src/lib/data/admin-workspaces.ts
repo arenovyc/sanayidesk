@@ -1,4 +1,5 @@
 import "server-only";
+import { workspaceAudience } from "@/lib/admin/demo-workspace";
 import {
   trialDaysLeft,
   type AdminWorkspaceRow,
@@ -59,6 +60,7 @@ export async function listAdminWorkspaces(): Promise<{
           mechanicCount: 0,
           lastActivityAt: null,
           daysLeft: null,
+          audience: workspaceAudience(row.slug as string),
         })),
       };
     }
@@ -148,6 +150,7 @@ export async function listAdminWorkspaces(): Promise<{
         mechanicCount: mechanicCountByWs.get(row.id) ?? 0,
         lastActivityAt: lastActivityByWs.get(row.id) ?? null,
         daysLeft: trialDaysLeft(trialEndsAt, nowMs),
+        audience: workspaceAudience(row.slug as string),
       };
     }),
   };

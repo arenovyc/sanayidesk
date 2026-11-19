@@ -58,6 +58,15 @@ function WorkspaceAdminCard({ row }: { row: AdminWorkspaceRow }) {
           ) : null}
         </div>
         <div className="flex shrink-0 flex-col items-end gap-1">
+          <span
+            className={
+              row.audience === "demo"
+                ? "rounded-full bg-violet-100 px-2 py-0.5 text-xs font-medium text-violet-800"
+                : "rounded-full bg-sky-100 px-2 py-0.5 text-xs font-medium text-sky-800"
+            }
+          >
+            {row.audience === "demo" ? "Demo / seed" : "Gerçek müşteri"}
+          </span>
           <span className="rounded-full bg-neutral-100 px-2 py-0.5 text-xs font-medium text-neutral-700">
             {tradeKindLabel(row.tradeKind)}
           </span>
@@ -153,11 +162,28 @@ function WorkspaceAdminCard({ row }: { row: AdminWorkspaceRow }) {
 }
 
 export function AdminWorkspaceList({ rows }: { rows: AdminWorkspaceRow[] }) {
-  const [filter, setFilter] = useState<string>("all");
+  const [audience, setAudience] = useState<"customer" | "demo" | "all">(
+    "customer",
+  );
+  const [tradeFilter, setTradeFilter] = useState<string>("all");
+
+  const counts = useMemo(() => {
+    let customer = 0;
+    let demo = 0;
+    for (const row of rows) {
+      if (row.audience === "demo") demo += 1;
+      else customer += 1;
+    }
+    return { customer, demo, all: rows.length };
+  }, [rows]);
+
   const filtered = useMemo(() => {
-    if (filter === "all") return rows;
-    return rows.filter((r) => r.tradeKind === filter);
-  }, [rows, filter]);
+    return rows.filter((row) => {
+      if (audience !== "all" && row.audience !== audience) return false;
+      if (tradeFilter !== "all" && row.tradeKind !== tradeFilter) return false;
+      return true;
+    });
+  }, [rows, audience, tradeFilter]);
 
   if (rows.length === 0) {
     return <p className="text-sm text-neutral-400">Workspace yok.</p>;
@@ -165,12 +191,34 @@ export function AdminWorkspaceList({ rows }: { rows: AdminWorkspaceRow[] }) {
 
   return (
     <div className="flex flex-col gap-3">
+      <div className="flex flex-wrap gap-1.5">
+        {(
+          [
+            ["customer", `Gerçek (${counts.customer})`],
+            ["demo", `Demo / seed (${counts.demo})`],
+            ["all", `Tümü (${counts.all})`],
+          ] as const
+        ).map(([value, label]) => (
+          <button
+            key={value}
+            type="button"
+            onClick={() => setAudience(value)}
+            className={
+              audience === value
+                ? "inline-flex h-9 items-center rounded-full bg-neutral-950 px-3 text-xs font-medium text-white"
+                : "inline-flex h-9 items-center rounded-full border border-neutral-200 bg-white px-3 text-xs font-medium text-neutral-700"
+            }
+          >
+            {label}
+          </button>
+        ))}
+      </div>
       <label className="flex flex-col gap-1 text-sm">
         <span className="text-neutral-500">Branş filtresi</span>
         <select
           className="h-10 rounded-lg border border-neutral-200 bg-white px-3"
-          value={filter}
-          onChange={(e) => setFilter(e.target.value)}
+          value={tradeFilter}
+          onChange={(e) => setTradeFilter(e.target.value)}
         >
           <option value="all">Tümü</option>
           {TRADE_KINDS.map((k) => (
@@ -180,11 +228,20 @@ export function AdminWorkspaceList({ rows }: { rows: AdminWorkspaceRow[] }) {
           ))}
         </select>
       </label>
-      <ul className="flex flex-col gap-3">
-        {filtered.map((row) => (
-          <WorkspaceAdminCard key={row.id} row={row} />
-        ))}
-      </ul>
+      {filtered.length === 0 ? (
+        <p className="text-sm text-neutral-400">
+          Bu filtrede dükkan yok.
+          {audience === "customer"
+            ? " Self-serve kayıtlar burada görünür; Başkent demo ayrı sekmede."
+            : null}
+        </p>
+      ) : (
+        <ul className="flex flex-col gap-3">
+          {filtered.map((row) => (
+            <WorkspaceAdminCard key={row.id} row={row} />
+          ))}
+        </ul>
+      )}
     </div>
   );
 }
