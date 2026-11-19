@@ -8,16 +8,49 @@ import { listPartyBalances } from "@/lib/data/b2b";
 import { listNetworkShops } from "@/lib/data/network";
 import { listNeighborRequests } from "@/lib/data/neighbors";
 import { listDirectory } from "@/lib/data/ops";
-import { tradeKindLabel } from "@/lib/trade/kinds";
+import {
+  TRADE_KINDS,
+  TRADE_KIND_LABELS,
+  isTradeKind,
+  tradeKindLabel,
+} from "@/lib/trade/kinds";
+import { getTradeProfile } from "@/lib/trade/profile";
 
-export default async function NeighborsPage() {
+export default async function NeighborsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ tur?: string }>;
+}) {
   const ctx = await requireDeskSession();
+  const query = await searchParams;
+  const filterKind =
+    query.tur && isTradeKind(query.tur) ? query.tur : null;
+  const profile = getTradeProfile(ctx.workspace.tradeKind);
+
   const [directory, network, requests, balances] = await Promise.all([
     listDirectory(ctx.workspace.id),
     listNetworkShops(),
     listNeighborRequests(ctx.workspace.id),
     listPartyBalances(ctx.workspace.id),
   ]);
+
+  const shops = network.rows
+    .filter((s) => !s.isMine)
+    .filter((s) => (filterKind ? s.tradeKind === filterKind : true))
+    .sort((a, b) => {
+      const aComp = profile.complementaryTrades.includes(
+        a.tradeKind as (typeof TRADE_KINDS)[number],
+      )
+        ? 0
+        : 1;
+      const bComp = profile.complementaryTrades.includes(
+        b.tradeKind as (typeof TRADE_KINDS)[number],
+      )
+        ? 0
+        : 1;
+      if (aComp !== bComp) return aComp - bComp;
+      return a.name.localeCompare(b.name, "tr");
+    });
 
   return (
     <div className="flex flex-col gap-6">
@@ -26,7 +59,7 @@ export default async function NeighborsPage() {
         description="Rehber, SanayiDesk ağı, plaka sor, stok transfer ve cari — tek yer."
       />
 
-      <section className="flex flex-col gap-3">
+      <section id="rehber" className="flex flex-col gap-3 scroll-mt-24">
         <h2 className="text-sm font-medium text-neutral-500">Rehberim</h2>
         {directory.length === 0 ? (
           <p className="text-sm text-neutral-500">
@@ -49,38 +82,68 @@ export default async function NeighborsPage() {
         <NeighborWaAskForm directory={directory} />
       </section>
 
-      <section className="flex flex-col gap-3">
+      <section id="ag" className="flex flex-col gap-3 scroll-mt-24">
         <h2 className="text-sm font-medium text-neutral-500">
           SanayiDesk’te kayıtlılar
         </h2>
+        <div className="flex flex-wrap gap-2">
+          <Link
+            href="/neighbors"
+            className={`rounded-full border px-3 py-1 text-xs font-medium ${
+              !filterKind
+                ? "border-neutral-950 bg-neutral-950 text-white"
+                : "border-neutral-200 bg-white text-neutral-700"
+            }`}
+          >
+            Tümü
+          </Link>
+          {TRADE_KINDS.map((kind) => (
+            <Link
+              key={kind}
+              href={`/neighbors?tur=${kind}`}
+              className={`rounded-full border px-3 py-1 text-xs font-medium ${
+                filterKind === kind
+                  ? "border-neutral-950 bg-neutral-950 text-white"
+                  : "border-neutral-200 bg-white text-neutral-700"
+              }`}
+            >
+              {TRADE_KIND_LABELS[kind]}
+            </Link>
+          ))}
+        </div>
         {network.schemaMissing ? (
           <SchemaHintBanner missing quietProd />
-        ) : network.rows.filter((s) => !s.isMine).length === 0 ? (
+        ) : shops.length === 0 ? (
           <p className="text-sm text-neutral-500">
             Ağda görünür başka dükkan yok. Ayarlardan “Ağda görün” açabilirsin.
           </p>
         ) : (
           <ul className="divide-y divide-neutral-200 overflow-hidden rounded-2xl border border-neutral-200 bg-white text-sm">
-            {network.rows
-              .filter((s) => !s.isMine)
-              .map((s) => (
-                <li key={s.id} className="px-4 py-2.5">
+            {shops.map((s) => (
+              <li key={s.id} className="px-4 py-2.5">
+                <div className="flex flex-wrap items-baseline justify-between gap-2">
                   <p className="font-medium">{s.name}</p>
-                  <p className="text-xs text-neutral-400">
-                    {s.slug}
-                    {s.phone ? ` · ${s.phone}` : null}
-                  </p>
-                </li>
-              ))}
+                  <span className="rounded-full bg-neutral-100 px-2 py-0.5 text-[11px] font-medium text-neutral-600">
+                    {tradeKindLabel(s.tradeKind)}
+                  </span>
+                </div>
+                <p className="text-xs text-neutral-400">
+                  {s.cityDistrict || s.slug}
+                  {s.phone ? ` · ${s.phone}` : null}
+                </p>
+              </li>
+            ))}
           </ul>
         )}
         <NeighborInAppAskForm shops={network.rows} />
       </section>
 
-      <section className="flex flex-col gap-3">
-        <h2 className="text-sm font-medium text-neutral-500">Plaka sor</h2>
-        <SharedPlatePanel />
-      </section>
+      {profile.family === "workshop" ? (
+        <section className="flex flex-col gap-3">
+          <h2 className="text-sm font-medium text-neutral-500">Plaka sor</h2>
+          <SharedPlatePanel />
+        </section>
+      ) : null}
 
       <section className="flex flex-col gap-2">
         <h2 className="text-sm font-medium text-neutral-500">Stok & cari</h2>
@@ -95,19 +158,13 @@ export default async function NeighborsPage() {
             href="/b2b"
             className="rounded-lg border border-neutral-200 bg-white px-3 py-2 font-medium underline-offset-4 hover:underline"
           >
-            Taşeron / cari
+            Veresiye / cari
           </Link>
           <Link
             href="/directory"
             className="rounded-lg border border-neutral-200 bg-white px-3 py-2 font-medium underline-offset-4 hover:underline"
           >
             Rehberi düzenle
-          </Link>
-          <Link
-            href="/network"
-            className="rounded-lg border border-neutral-200 bg-white px-3 py-2 font-medium underline-offset-4 hover:underline"
-          >
-            Ağ listesi
           </Link>
         </div>
         {!balances.schemaMissing && balances.rows.length > 0 ? (

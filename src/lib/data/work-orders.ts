@@ -5,7 +5,7 @@ import {
 } from "@/lib/data/assignments";
 import { displayPlate, normalizePlate } from "@/lib/format/plate";
 import { waitLabel } from "@/lib/format/wait-label";
-import { parseJobQuery } from "@/lib/search/job-query";
+import { matchesJobQuery, parseJobQuery } from "@/lib/search/job-query";
 import { createServerSupabase } from "@/lib/supabase/server";
 import { requestNowMs } from "@/lib/time/request-now";
 import { boardColumnForStatus } from "@/lib/assignments/rules";
@@ -319,13 +319,21 @@ export async function searchWorkOrders(
 
   if (parsed.kind === "display_no") {
     query = query.ilike("display_no", parsed.normalized);
+  } else if (parsed.kind === "text") {
+    query = query.or(
+      `counter_title.ilike.%${parsed.raw}%,complaint.ilike.%${parsed.raw}%`,
+    );
+    query = query.limit(80);
   } else {
-    // Plate match via vehicle embed is awkward in PostgREST; fetch recent open+closed and filter.
+    // Plate match via vehicle embed is awkward in PostgREST; fetch recent and filter.
     query = query.limit(80);
   }
 
   const { data, error } = await query;
   if (error && isMissingColumn(error, "display_no") && parsed.kind === "display_no") {
+    return [];
+  }
+  if (error && parsed.kind === "text" && isMissingColumn(error, "counter_title")) {
     return [];
   }
   if (error) throw error;
@@ -336,9 +344,7 @@ export async function searchWorkOrders(
 
   if (parsed.kind === "display_no") return rows.slice(0, 20);
 
-  return rows
-    .filter((row) => normalizePlate(row.plate).includes(parsed.normalized))
-    .slice(0, 20);
+  return rows.filter((row) => matchesJobQuery(parsed, row)).slice(0, 20);
 }
 
 export async function getWorkOrder(
@@ -737,6 +743,10 @@ export async function listRecentPayments(workspaceId: string): Promise<PaymentRo
         wo && typeof wo === "object" && "display_no" in wo
           ? ((wo as { display_no: string | null }).display_no ?? null)
           : null;
+      const counterTitle =
+        wo && typeof wo === "object" && "counter_title" in wo
+          ? ((wo as { counter_title: string | null }).counter_title ?? null)
+          : null;
       return {
         id: row.id,
         amount: Number(row.amount),
@@ -746,6 +756,7 @@ export async function listRecentPayments(workspaceId: string): Promise<PaymentRo
         note: row.note,
         workOrderId: row.work_order_id,
         plate: vehicle ? displayPlate(vehicle.plate_normalized) : undefined,
+        counterTitle,
         displayNo,
         voidedAt: row.voided_at ?? null,
       };
@@ -754,7 +765,7 @@ export async function listRecentPayments(workspaceId: string): Promise<PaymentRo
   const { data, error } = await supabase
     .from("payments")
     .select(
-      "id, amount, method, invoice_mode, paid_at, note, work_order_id, voided_at, work_orders(display_no, vehicles(plate_normalized))",
+      "id, amount, method, invoice_mode, paid_at, note, work_order_id, voided_at, work_orders(display_no, counter_title, vehicles(plate_normalized))",
     )
     .eq("workspace_id", workspaceId)
     .order("paid_at", { ascending: false })

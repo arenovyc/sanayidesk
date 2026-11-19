@@ -19,13 +19,15 @@ export function RegisterForm({
   defaultEmail = "",
   defaultFullName = "",
   oauthMode = false,
+  defaultTradeKind = "tamir",
 }: {
   defaultEmail?: string;
   defaultFullName?: string;
   oauthMode?: boolean;
+  defaultTradeKind?: TradeKind;
 }) {
   const [state, action, pending] = useActionState(registerAction, initial);
-  const [tradeKind, setTradeKind] = useState<TradeKind>("tamir");
+  const [tradeKind, setTradeKind] = useState<TradeKind>(defaultTradeKind);
 
   return (
     <div className="flex flex-col gap-4">

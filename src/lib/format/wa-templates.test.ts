@@ -30,6 +30,17 @@ describe("wa templates", () => {
     assert.ok(text.includes("₺1.000"));
   });
 
+  it("ready order without plate", () => {
+    const text = waReadyVehicleMessage({
+      shopName: "Parça",
+      title: "Ahmet Oto balata",
+      readyNoun: "order",
+    });
+    assert.ok(text.includes("siparişiniz hazır"));
+    assert.ok(text.includes("Ahmet Oto balata"));
+    assert.equal(text.includes("Plaka"), false);
+  });
+
   it("parts vendor", () => {
     const text = waPartsVendorMessage({
       shopName: "Demo",

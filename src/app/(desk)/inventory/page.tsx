@@ -1,9 +1,9 @@
 import { Suspense } from "react";
-import { PageSkeleton } from "@/components/ui/skeleton";
-import Link from "next/link";
 import { InventoryPanel } from "@/components/desk/inventory-forms";
+import { PageHeader } from "@/components/shells/page-header";
 import { SchemaHintBanner } from "@/components/ui/schema-hint-banner";
 import { requireDeskSession } from "@/lib/auth/get-membership";
+import { getTradeProfile } from "@/lib/trade/profile";
 import {
   listInventoryItems,
   listInventoryMovements,
@@ -28,19 +28,18 @@ async function InventoryBody() {
     listNetworkShops(),
   ]);
 
+  const profile = getTradeProfile(ctx.workspace.tradeKind);
+  const backHref =
+    profile.nav.some((n) => n.href === "/inventory") ? "/today" : "/more";
+
   return (
     <div className="flex flex-col gap-4">
-      <div>
-        <p className="text-sm text-neutral-500">
-          <Link href="/more" className="hover:underline">
-            Daha fazla
-          </Link>
-        </p>
-        <h1 className="mt-1 text-xl font-semibold">Stok</h1>
-        <p className="mt-1 text-sm text-neutral-500">
-          Envanter, düşük stok çanı ve dükkanlar arası transfer.
-        </p>
-      </div>
+      <PageHeader
+        title="Stok"
+        backHref={backHref}
+        backLabel={backHref === "/today" ? "Bugün" : "Daha fazla"}
+        description="Envanter, düşük stok çanı ve dükkanlar arası transfer."
+      />
       {items.schemaMissing || moves.schemaMissing ? (
         <SchemaHintBanner missing />
       ) : (

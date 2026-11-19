@@ -46,6 +46,21 @@ Yeni dükkan ilk ekranı **Bugün**’dür. Sarı kutu dükkan kodunu gösterir;
 
 Migration: `024_counter_and_neighbors.sql` (canlı SQL Editor). `accept_work_order` A3 aynı.
 
+## Branş Sürümü (Facebook öncesi)
+
+Migration: **`025_trade_counter_sale.sql`** (SQL Editor).
+
+| Branş | Alt menü | İş detayı | Not |
+|-------|----------|-----------|-----|
+| tamir/elektrik/kaporta | Bugün · İşler · Komşular · Tahsilat · Daha fazla | Workshop; kaporta’da foto üstte | `/register?tur=` |
+| lastik | Bugün · **Sıra** · … | Workshop; board liste | |
+| parca | Bugün · Satışlar · **Stok** · **Veresiye** · Daha fazla | Counter; stoktan sat | `desk_counter_sale` |
+| torna | Bugün · İşler · Komşular · … | Counter; Geldi/İşlemde/Hazır | |
+
+Kontrol: landing “Hangi işi yapıyorsun?”; Ayarlar’dan tür değiştir; deneme bandı (≤7 gün); Komşular’da tür filtresi; arama “Ahmet Oto”.
+
+Demo env (opsiyonel): `DEMO_LOGIN_EMAIL_PARCA`, `DEMO_LOGIN_PASSWORD_PARCA`, `_TORNA`.
+
 ## Sonraki
 
 - Playwright: 6 branş × kayıt × kabuk assert.

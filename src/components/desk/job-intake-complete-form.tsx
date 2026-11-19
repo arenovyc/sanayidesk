@@ -19,6 +19,7 @@ export function JobIntakeCompleteForm({
   complaint,
   makeModel,
   entryKm = "",
+  mode = "workshop",
 }: {
   workOrderId: string;
   fullName: string;
@@ -26,8 +27,10 @@ export function JobIntakeCompleteForm({
   complaint: string;
   makeModel: string;
   entryKm?: string;
+  mode?: "workshop" | "counter";
 }) {
   const [state, action, pending] = useActionState(updateJobIntakeAction, initial);
+  const counter = mode === "counter";
 
   return (
     <form
@@ -35,15 +38,25 @@ export function JobIntakeCompleteForm({
       className="flex flex-col gap-3 rounded-2xl border border-amber-200 bg-amber-50/80 p-4"
     >
       <input type="hidden" name="workOrderId" value={workOrderId} />
+      {counter ? (
+        <>
+          <input type="hidden" name="makeModel" value="" />
+          <input type="hidden" name="entryKm" value="" />
+        </>
+      ) : null}
       <div>
         <p className="text-sm font-medium text-amber-950">Hızlı tamamla</p>
         <p className="mt-0.5 text-xs text-amber-900/80">
-          Müşteri, telefon, araç, KM ve şikayet — kabul sonrası doldur.
+          {counter
+            ? "İsim ve telefon — tezgâh çıkışı için yeterli."
+            : "Müşteri, telefon, araç, KM ve şikayet — kabul sonrası doldur."}
         </p>
       </div>
       <div className="grid gap-3 sm:grid-cols-2">
         <div className="flex flex-col gap-1.5">
-          <Label htmlFor="fullName">Müşteri adı</Label>
+          <Label htmlFor="fullName">
+            {counter ? "İsim" : "Müşteri adı"}
+          </Label>
           <Input
             id="fullName"
             name="fullName"
@@ -62,28 +75,34 @@ export function JobIntakeCompleteForm({
             autoComplete="tel"
           />
         </div>
-        <div className="flex flex-col gap-1.5">
-          <Label htmlFor="makeModel">Marka / model</Label>
-          <Input
-            id="makeModel"
-            name="makeModel"
-            placeholder="Örn. Fiat Fiorino"
-            defaultValue={makeModel}
-          />
-        </div>
-        <div className="flex flex-col gap-1.5">
-          <Label htmlFor="entryKm">Giriş KM</Label>
-          <Input
-            id="entryKm"
-            name="entryKm"
-            inputMode="numeric"
-            placeholder="örn. 142000"
-            defaultValue={entryKm}
-          />
-        </div>
+        {!counter ? (
+          <>
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor="makeModel">Marka / model</Label>
+              <Input
+                id="makeModel"
+                name="makeModel"
+                placeholder="Örn. Fiat Fiorino"
+                defaultValue={makeModel}
+              />
+            </div>
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor="entryKm">Giriş KM</Label>
+              <Input
+                id="entryKm"
+                name="entryKm"
+                inputMode="numeric"
+                placeholder="örn. 142000"
+                defaultValue={entryKm}
+              />
+            </div>
+          </>
+        ) : null}
         <div className="flex flex-col gap-1.5 sm:col-span-2">
           <div className="flex items-center justify-between gap-2">
-            <Label htmlFor="complaint">Şikayet / iş özeti</Label>
+            <Label htmlFor="complaint">
+              {counter ? "Not / özet" : "Şikayet / iş özeti"}
+            </Label>
             <VoiceDictationButton targetId="complaint" />
           </div>
           <textarea

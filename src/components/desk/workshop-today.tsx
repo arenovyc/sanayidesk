@@ -9,7 +9,9 @@ import {
   WhatsAppShareHint,
 } from "@/components/desk/whatsapp-share-button";
 import { WorkshopQuickAccept } from "@/components/desk/workshop-quick-accept";
+import { OnboardingChecklist } from "@/components/desk/onboarding-checklist";
 import { PageHeader } from "@/components/shells/page-header";
+import { getTradeProfile } from "@/lib/trade/profile";
 import { Button } from "@/components/ui/button";
 import { formatAppointmentTime } from "@/lib/appointments/day-range";
 import { istanbulDayBoundsIso } from "@/lib/appointments/day-range";
@@ -58,10 +60,13 @@ export async function WorkshopToday({
         ? "Plaka kabul, foto ve onay."
         : "Plaka kabul, sıradaki randevu ve açık işler.";
 
+  const profile = getTradeProfile(tradeKind);
+
   return (
     <div className="flex flex-col gap-5">
       <PageHeader title="Bugün" description={description} />
       <ShopCodeBanner shopCode={shopCode} tradeKind={tradeKind} />
+      <OnboardingChecklist steps={profile.onboardingSteps} />
       <WorkshopQuickAccept tradeKind={tradeKind} />
       <AcceptForm />
       <JobSearch />

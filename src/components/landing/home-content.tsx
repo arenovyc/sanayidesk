@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 import { HomeBoardPreview } from "@/components/landing/home-board-preview";
 import { MarketingShell } from "@/components/landing/marketing-shell";
+import { TradePicker } from "@/components/landing/trade-picker";
 import { Button } from "@/components/ui/button";
 import { TRIAL_DAYS } from "@/lib/pricing";
 
@@ -159,6 +160,8 @@ export function HomeContent({
             ]}
           />
         </section>
+
+        <TradePicker />
 
         <section className="mt-16 border-t border-white/10 pt-12">
           <h2 className="text-center text-xl font-semibold text-white">SSS</h2>

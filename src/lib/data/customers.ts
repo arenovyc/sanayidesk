@@ -14,6 +14,7 @@ export type CustomerDetail = CustomerListRow & {
   jobs: {
     id: string;
     plate: string;
+    counterTitle: string | null;
     displayNo: string | null;
     status: WorkOrderStatus;
     openedAt: string;
@@ -84,7 +85,9 @@ export async function getCustomer(
       .limit(50),
     supabase
       .from("work_orders")
-      .select("id, status, opened_at, display_no, vehicles(plate_normalized)")
+      .select(
+        "id, status, opened_at, display_no, counter_title, vehicles(plate_normalized)",
+      )
       .eq("workspace_id", workspaceId)
       .eq("customer_id", id)
       .order("opened_at", { ascending: false })
@@ -106,11 +109,22 @@ export async function getCustomer(
   const jobs = (jobsRes.data ?? [])
     .map((row) => {
       const status = isWorkOrderStatus(row.status) ? row.status : null;
+      if (!status) return null;
       const vehicle = Array.isArray(row.vehicles) ? row.vehicles[0] : row.vehicles;
-      if (!status || !vehicle) return null;
+      const counterTitle =
+        "counter_title" in row
+          ? ((row as { counter_title: string | null }).counter_title?.trim() ||
+            null)
+          : null;
+      if (!vehicle && !counterTitle) return null;
       return {
         id: row.id,
-        plate: displayPlate((vehicle as { plate_normalized: string }).plate_normalized),
+        plate: vehicle
+          ? displayPlate(
+              (vehicle as { plate_normalized: string }).plate_normalized,
+            )
+          : "",
+        counterTitle,
         displayNo:
           "display_no" in row
             ? ((row as { display_no: string | null }).display_no ?? null)

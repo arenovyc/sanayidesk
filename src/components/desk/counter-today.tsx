@@ -1,6 +1,9 @@
 import Link from "next/link";
 import { CounterAcceptForm } from "@/components/desk/counter-accept-form";
+import { CounterSaleForm } from "@/components/desk/counter-sale-form";
 import { CounterStatusForm } from "@/components/desk/counter-status-form";
+import { getTradeProfile } from "@/lib/trade/profile";
+import { OnboardingChecklist } from "@/components/desk/onboarding-checklist";
 import { JobSearch } from "@/components/desk/job-search";
 import { ShopCodeBanner } from "@/components/desk/shop-code-banner";
 import { PageHeader } from "@/components/shells/page-header";
@@ -33,6 +36,7 @@ export async function CounterToday({
     listInventoryItems(ctx.workspace.id),
   ]);
 
+  const profile = getTradeProfile(tradeKind);
   const openJobs = board.jobs.filter(
     (j) => j.status === "intake" || j.status === "in_progress" || j.status === "waiting_parts" || j.status === "waiting_approval",
   );
@@ -50,10 +54,24 @@ export async function CounterToday({
         }
       />
       <ShopCodeBanner shopCode={shopCode} tradeKind={tradeKind} />
-      <CounterAcceptForm
-        tradeKind={tradeKind}
-        showCredit={tradeKind === "parca"}
-      />
+      <OnboardingChecklist steps={profile.onboardingSteps} />
+      {tradeKind === "parca" ? (
+        <CounterSaleForm
+          tradeKind={tradeKind}
+          stockItems={
+            inventory.schemaMissing
+              ? []
+              : inventory.rows.map((r) => ({
+                  id: r.id,
+                  name: r.name,
+                  qty: r.availableQty ?? r.qty,
+                  unitCost: r.unitCost,
+                }))
+          }
+        />
+      ) : (
+        <CounterAcceptForm tradeKind={tradeKind} showCredit={false} />
+      )}
       <JobSearch />
 
       <dl className="grid grid-cols-3 gap-2 text-center">

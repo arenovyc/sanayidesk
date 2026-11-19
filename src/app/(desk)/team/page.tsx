@@ -1,8 +1,7 @@
 import { Suspense } from "react";
-import { PageSkeleton } from "@/components/ui/skeleton";
-import Link from "next/link";
 import { redirect } from "next/navigation";
 import { TeamPanel } from "@/components/desk/team-forms";
+import { PageHeader } from "@/components/shells/page-header";
 import { requireDeskSession } from "@/lib/auth/get-membership";
 import { listTeam } from "@/lib/data/ops";
 import { hasServiceRoleKey } from "@/lib/supabase/env";
@@ -22,19 +21,12 @@ async function TeamBody() {
 
   return (
     <div className="flex flex-col gap-4">
-      <div>
-        <Link
-          href="/more"
-          className="text-sm text-neutral-500 underline-offset-4 hover:underline"
-        >
-          Daha fazla
-        </Link>
-        <h1 className="mt-2 text-xl font-semibold">Personel</h1>
-        <p className="mt-1 text-sm text-neutral-500">
-          Usta ve çırak PIN ile girer. Kabulcü e-posta ve şifre ile girer
-          (geçici şifre ver; ilk girişten sonra değiştirsin).
-        </p>
-      </div>
+      <PageHeader
+        title="Personel"
+        backHref="/more"
+        backLabel="Daha fazla"
+        description="Usta ve çırak PIN ile girer. Kabulcü e-posta ve şifre ile girer (geçici şifre ver; ilk girişten sonra değiştirsin)."
+      />
       {!hasServiceRoleKey() ? (
         <p className="rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-950">
           Kabulcü eklemek için sunucuda{" "}

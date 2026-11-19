@@ -11,14 +11,16 @@ import type { WorkOrderStatus } from "@/lib/work-orders/status";
 
 const initial: CounterActionState = { error: null };
 
-const STEPS = ["intake", "in_progress", "ready"] as const;
+const STEPS = ["intake", "in_progress", "ready", "delivered"] as const;
 
 export function CounterStatusForm({
   workOrderId,
   status,
+  labels = TORNA_STATUS_LABELS,
 }: {
   workOrderId: string;
   status: WorkOrderStatus;
+  labels?: Partial<Record<WorkOrderStatus, string>>;
 }) {
   const [state, action, pending] = useActionState(
     setCounterStatusAction,
@@ -30,6 +32,10 @@ export function CounterStatusForm({
       <input type="hidden" name="id" value={workOrderId} />
       {STEPS.map((step) => {
         const active = status === step;
+        const label =
+          labels[step] ??
+          TORNA_STATUS_LABELS[step as keyof typeof TORNA_STATUS_LABELS] ??
+          step;
         return (
           <Button
             key={step}
@@ -40,7 +46,7 @@ export function CounterStatusForm({
             variant={active ? "default" : "outline"}
             disabled={pending || active}
           >
-            {TORNA_STATUS_LABELS[step]}
+            {label}
           </Button>
         );
       })}

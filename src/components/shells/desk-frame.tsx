@@ -1,11 +1,13 @@
 import { Suspense } from "react";
 import { BottomNav } from "@/components/shells/bottom-nav";
 import { TopBar } from "@/components/shells/top-bar";
+import { TrialBanner } from "@/components/shells/trial-banner";
 import {
   isPlatformAdminEmail,
   requireDeskSession,
 } from "@/lib/auth/get-membership";
 import { getDeskNotificationCounts } from "@/lib/data/notifications";
+import { getTradeProfile } from "@/lib/trade/profile";
 
 function TopBarFallback() {
   return (
@@ -22,11 +24,11 @@ function TopBarFallback() {
   );
 }
 
-function BottomNavFallback() {
+function BottomNavFallback({ labels }: { labels: string[] }) {
   return (
     <nav className="fixed inset-x-0 bottom-0 z-20 border-t border-neutral-200 bg-white/95 pb-[env(safe-area-inset-bottom)] backdrop-blur print:hidden">
       <ul className="mx-auto flex max-w-lg">
-        {["Bugün", "İşler", "Komşular", "Tahsilat", "Daha fazla"].map((label) => (
+        {labels.map((label) => (
           <li key={label} className="flex-1">
             <div className="flex min-h-14 flex-col items-center justify-center gap-1 text-xs font-medium text-neutral-300">
               <div className="size-5 rounded bg-neutral-200/80" />
@@ -44,15 +46,28 @@ async function DeskTopBar() {
   const { counts, schemaMissing } = await getDeskNotificationCounts(
     ctx.workspace.id,
   );
+  const profile = getTradeProfile(ctx.workspace.tradeKind);
 
   return (
-    <TopBar
-      shopName={ctx.workspace.name}
-      notificationCounts={counts}
-      notificationsMissing={schemaMissing}
-      showPlatformAdmin={isPlatformAdminEmail(ctx.authEmail)}
-    />
+    <>
+      <TrialBanner
+        trialEndsAt={ctx.workspace.trialEndsAt}
+        shopPhone={ctx.workspace.settings.phone}
+      />
+      <TopBar
+        shopName={ctx.workspace.name}
+        tradeLabel={profile.shortLabel}
+        notificationCounts={counts}
+        notificationsMissing={schemaMissing}
+        showPlatformAdmin={isPlatformAdminEmail(ctx.authEmail)}
+      />
+    </>
   );
+}
+
+async function DeskBottomNav() {
+  const ctx = await requireDeskSession();
+  return <BottomNav variant="desk" tradeKind={ctx.workspace.tradeKind} />;
 }
 
 /**
@@ -69,8 +84,14 @@ export function DeskFrame({ children }: { children: React.ReactNode }) {
       <main className="mx-auto flex w-full max-w-lg flex-1 flex-col px-4 pb-[calc(6rem+env(safe-area-inset-bottom))] pt-4 md:max-w-5xl lg:max-w-7xl">
         {children}
       </main>
-      <Suspense fallback={<BottomNavFallback />}>
-        <BottomNav variant="desk" />
+      <Suspense
+        fallback={
+          <BottomNavFallback
+            labels={["Bugün", "İşler", "…", "Tahsilat", "Daha fazla"]}
+          />
+        }
+      >
+        <DeskBottomNav />
       </Suspense>
     </div>
   );

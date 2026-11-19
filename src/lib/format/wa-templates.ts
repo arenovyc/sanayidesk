@@ -1,13 +1,37 @@
 /** Manual WhatsApp share text — opens wa.me; no Business API. */
 
+function plateLine(plate?: string | null): string | null {
+  const p = plate?.trim();
+  if (!p) return null;
+  return `Plaka ${p}`;
+}
+
+function subjectLine(input: {
+  plate?: string | null;
+  title?: string | null;
+  displayNo?: string | null;
+}): string | null {
+  const title = input.title?.trim();
+  if (title) return title;
+  return plateLine(input.plate);
+}
+
 export function waReadyVehicleMessage(input: {
   shopName: string;
-  plate: string;
+  plate?: string | null;
+  title?: string | null;
   displayNo?: string | null;
   shopPhone?: string | null;
   nextServiceKm?: number | null;
   nextServiceDateLabel?: string | null;
+  readyNoun?: "vehicle" | "order" | "job";
 }): string {
+  const ready =
+    input.readyNoun === "order"
+      ? "siparişiniz hazır."
+      : input.readyNoun === "job"
+        ? "işiniz hazır."
+        : "aracınız hazır.";
   const nextLine =
     input.nextServiceKm != null
       ? `Bir sonraki bakım: ${input.nextServiceKm.toLocaleString("tr-TR")} km${
@@ -15,8 +39,8 @@ export function waReadyVehicleMessage(input: {
         }`
       : null;
   return [
-    `${input.shopName}: aracınız hazır.`,
-    `Plaka ${input.plate}`,
+    `${input.shopName}: ${ready}`,
+    subjectLine(input),
     input.displayNo ? `İş ${input.displayNo}` : null,
     nextLine,
     input.shopPhone ? `Tel ${input.shopPhone}` : null,
@@ -27,14 +51,15 @@ export function waReadyVehicleMessage(input: {
 
 export function waQuoteSummaryMessage(input: {
   shopName: string;
-  plate: string;
+  plate?: string | null;
+  title?: string | null;
   quoteLabel: string;
   shopPhone?: string | null;
   approvalUrl?: string | null;
 }): string {
   return [
     `${input.shopName}: teklif özeti`,
-    `Plaka ${input.plate}`,
+    subjectLine(input),
     input.quoteLabel,
     input.approvalUrl
       ? `Onay linki (giriş gerekmez):\n${input.approvalUrl}`
@@ -47,12 +72,13 @@ export function waQuoteSummaryMessage(input: {
 
 export function waPartsVendorMessage(input: {
   shopName: string;
-  plate: string;
+  plate?: string | null;
+  title?: string | null;
   partsPlain: string;
 }): string {
   return [
     `${input.shopName} — parça talebi`,
-    `Plaka ${input.plate}`,
+    subjectLine(input),
     input.partsPlain,
   ]
     .filter(Boolean)
@@ -83,7 +109,7 @@ export function waNeighborJobReferMessage(input: {
 }): string {
   return [
     `${input.shopName} — iş paslama`,
-    input.plate ? `Plaka ${input.plate}` : null,
+    plateLine(input.plate),
     input.summary,
     input.shopPhone ? `Tel ${input.shopPhone}` : null,
     "Uygunsa yaz, konuşalım.",

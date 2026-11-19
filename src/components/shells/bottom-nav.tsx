@@ -11,20 +11,33 @@ import {
   Network,
   Package,
   Sun,
+  Wallet,
   type LucideIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import {
+  getTradeProfile,
+  type DeskNavIcon,
+  type DeskNavItem,
+} from "@/lib/trade/profile";
+import type { TradeKind } from "@/lib/trade/kinds";
 
 type NavVariant = "desk" | "lift" | "crew";
 
-const MENUS: Record<NavVariant, { href: string; label: string; icon: LucideIcon }[]> = {
-  desk: [
-    { href: "/today", label: "Bugün", icon: Sun },
-    { href: "/board", label: "İşler", icon: ClipboardList },
-    { href: "/neighbors", label: "Komşular", icon: Network },
-    { href: "/payments", label: "Tahsilat", icon: Banknote },
-    { href: "/more", label: "Daha fazla", icon: LayoutGrid },
-  ],
+const ICON_MAP: Record<DeskNavIcon, LucideIcon> = {
+  sun: Sun,
+  board: ClipboardList,
+  neighbors: Network,
+  payments: Banknote,
+  more: LayoutGrid,
+  inventory: Package,
+  credit: Wallet,
+};
+
+const STAFF_MENUS: Record<
+  Exclude<NavVariant, "desk">,
+  { href: string; label: string; icon: LucideIcon }[]
+> = {
   lift: [
     { href: "/lift", label: "Liftim", icon: Car },
     { href: "/parts", label: "Parça", icon: Package },
@@ -32,15 +45,33 @@ const MENUS: Record<NavVariant, { href: string; label: string; icon: LucideIcon 
   crew: [{ href: "/tasks", label: "Görevler", icon: ListTodo }],
 };
 
-export function BottomNav({ variant }: { variant: NavVariant }) {
+function deskItems(tradeKind: TradeKind | undefined): DeskNavItem[] {
+  return getTradeProfile(tradeKind).nav;
+}
+
+export function BottomNav({
+  variant,
+  tradeKind,
+}: {
+  variant: NavVariant;
+  tradeKind?: TradeKind;
+}) {
   const pathname = usePathname();
-  const items = MENUS[variant];
+  const items =
+    variant === "desk"
+      ? deskItems(tradeKind).map((item) => ({
+          href: item.href,
+          label: item.label,
+          icon: ICON_MAP[item.icon],
+        }))
+      : STAFF_MENUS[variant];
 
   return (
     <nav className="fixed inset-x-0 bottom-0 z-20 border-t border-neutral-200 bg-white/95 pb-[env(safe-area-inset-bottom)] backdrop-blur print:hidden">
       <ul className="mx-auto flex max-w-lg">
         {items.map((item) => {
-          const active = pathname === item.href || pathname.startsWith(`${item.href}/`);
+          const active =
+            pathname === item.href || pathname.startsWith(`${item.href}/`);
           const Icon = item.icon;
           return (
             <li key={item.href} className="flex-1">

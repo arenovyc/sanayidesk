@@ -6,8 +6,10 @@ export type NetworkShop = {
   name: string;
   slug: string;
   type: string;
+  tradeKind: string;
   phone: string;
   address: string;
+  cityDistrict: string;
   isMine: boolean;
 };
 
@@ -54,8 +56,10 @@ export async function listNetworkShops(): Promise<{
       name: String(row.name ?? ""),
       slug: String(row.slug ?? ""),
       type: String(row.type ?? "repair"),
+      tradeKind: String(row.trade_kind ?? "tamir"),
       phone: String(row.phone ?? ""),
       address: String(row.address ?? ""),
+      cityDistrict: String(row.city_district ?? ""),
       isMine: Boolean(row.is_mine),
     })),
   };

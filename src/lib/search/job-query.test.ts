@@ -26,3 +26,17 @@ test("matchesJobQuery", () => {
     true,
   );
 });
+
+test("parseJobQuery free text for counter title", () => {
+  const q = parseJobQuery("Ahmet Oto balata");
+  assert.equal(q.kind, "text");
+  assert.equal(
+    matchesJobQuery(q, {
+      plate: "",
+      displayNo: null,
+      counterTitle: "Ahmet Oto — ön balata",
+      customerName: null,
+    }),
+    true,
+  );
+});

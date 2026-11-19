@@ -1,8 +1,10 @@
 import { Suspense } from "react";
 import { PageSkeleton } from "@/components/ui/skeleton";
 import { B2bIndexPanel } from "@/components/desk/b2b-forms";
+import { PageHeader } from "@/components/shells/page-header";
 import { SchemaHintBanner } from "@/components/ui/schema-hint-banner";
 import { requireDeskSession } from "@/lib/auth/get-membership";
+import { getTradeProfile } from "@/lib/trade/profile";
 import {
   listB2bEntries,
   listExternalParties,
@@ -32,9 +34,20 @@ async function B2bBody() {
 
   const schemaMissing = partiesRes.schemaMissing || entriesRes.schemaMissing;
 
+  const profile = getTradeProfile(ctx.workspace.tradeKind);
+  const backHref = profile.nav.some((n) => n.href === "/b2b")
+    ? "/today"
+    : "/more";
+
   return (
     <div className="flex flex-col gap-4">
-      <h1 className="text-xl font-semibold">Taşeron / cari</h1>
+      <PageHeader
+        title={
+          profile.family === "counter" ? "Veresiye / cari" : "Taşeron / cari"
+        }
+        backHref={backHref}
+        backLabel={backHref === "/today" ? "Bugün" : "Daha fazla"}
+      />
       {schemaMissing ? (
         <SchemaHintBanner missing />
       ) : (

@@ -1,5 +1,6 @@
 "use server";
 
+import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { requireDeskSession } from "@/lib/auth/get-membership";
@@ -113,4 +114,115 @@ export async function setCounterStatusAction(
   });
   if (error) return { error: mapError(error.message) };
   redirect("/today");
+}
+
+const saleSchema = z.object({
+  title: z.string().trim().min(2, "Başlık en az 2 karakter").max(120),
+  fullName: z.string().trim().max(80).optional().default(""),
+  phone: z.string().trim().max(20).optional().default(""),
+  note: z.string().trim().max(500).optional().default(""),
+  itemId: z
+    .string()
+    .optional()
+    .default("")
+    .transform((v) => v.trim())
+    .refine((v) => v === "" || z.string().uuid().safeParse(v).success, "Stok seçimi geçersiz"),
+  qty: z
+    .string()
+    .optional()
+    .default("1")
+    .transform((v) => {
+      const n = Number(String(v).replace(",", "."));
+      return Number.isFinite(n) && n > 0 ? n : 1;
+    }),
+  amount: z
+    .string()
+    .optional()
+    .default("")
+    .transform((v) => {
+      const t = v.trim();
+      if (!t) return null;
+      const n = Number(t.replace(",", "."));
+      return Number.isFinite(n) && n > 0 ? n : null;
+    }),
+  payMethod: z
+    .enum(["", "cash", "card", "transfer", "credit"])
+    .optional()
+    .default(""),
+});
+
+export async function counterSaleAction(
+  _prev: CounterActionState,
+  formData: FormData,
+): Promise<CounterActionState> {
+  await requireDeskSession();
+  const supabase = await createServerSupabase();
+  if (!supabase) return { error: MISSING_SUPABASE_ENV };
+
+  const parsed = saleSchema.safeParse({
+    title: String(formData.get("title") ?? ""),
+    fullName: String(formData.get("fullName") ?? ""),
+    phone: String(formData.get("phone") ?? ""),
+    note: String(formData.get("note") ?? ""),
+    itemId: String(formData.get("itemId") ?? ""),
+    qty: String(formData.get("qty") ?? "1"),
+    amount: String(formData.get("amount") ?? ""),
+    payMethod: String(formData.get("payMethod") ?? ""),
+  });
+  if (!parsed.success) return { error: firstZodError(parsed.error) };
+
+  const lines = [];
+  if (parsed.data.itemId) {
+    lines.push({
+      item_id: parsed.data.itemId,
+      qty: parsed.data.qty,
+      amount: parsed.data.amount,
+      description: parsed.data.title,
+    });
+  } else if (parsed.data.amount) {
+    lines.push({
+      description: parsed.data.title,
+      qty: 1,
+      amount: parsed.data.amount,
+    });
+  }
+
+  const { data, error } = await supabase.rpc("desk_counter_sale", {
+    _title: parsed.data.title,
+    _full_name: parsed.data.fullName,
+    _phone: parsed.data.phone,
+    _note: parsed.data.note,
+    _lines: lines,
+    _pay_method: parsed.data.payMethod || "",
+    _pay_amount: parsed.data.amount,
+  });
+  if (error) return { error: mapError(error.message) };
+
+  const id =
+    data && typeof data === "object" && "id" in data
+      ? String((data as { id: string }).id)
+      : null;
+  if (id) redirect(`/jobs/${id}`);
+  redirect("/today");
+}
+
+export async function setTradeKindAction(
+  _prev: CounterActionState,
+  formData: FormData,
+): Promise<CounterActionState> {
+  await requireDeskSession();
+  const supabase = await createServerSupabase();
+  if (!supabase) return { error: MISSING_SUPABASE_ENV };
+  const kind = String(formData.get("tradeKind") ?? "").trim();
+  const { error } = await supabase.rpc("owner_set_trade_kind", {
+    _kind: kind,
+  });
+  if (error) {
+    const t = error.message.toLowerCase();
+    if (t.includes("invalid_trade")) return { error: "Dükkan türü geçersiz" };
+    if (t.includes("not_owner")) return { error: "Sadece sahip değiştirebilir" };
+    return { error: mapError(error.message) };
+  }
+  revalidatePath("/", "layout");
+  redirect("/settings?ok=trade");
 }

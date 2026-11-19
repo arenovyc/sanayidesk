@@ -60,6 +60,7 @@ export type PaymentRow = {
   note: string;
   workOrderId: string;
   plate?: string;
+  counterTitle?: string | null;
   displayNo?: string | null;
   voidedAt?: string | null;
 };

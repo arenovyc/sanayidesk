@@ -55,7 +55,15 @@ async function CustomerBody({ params }: { params: Promise<{ id: string }> }) {
                   className="flex justify-between px-4 py-3 text-sm"
                 >
                   <span>
-                    <span className="font-mono tracking-wide">{job.plate}</span>
+                    <span
+                      className={
+                        job.counterTitle
+                          ? "font-medium"
+                          : "font-mono tracking-wide"
+                      }
+                    >
+                      {job.counterTitle?.trim() || job.plate || "—"}
+                    </span>
                     {job.displayNo ? (
                       <span className="ml-2 font-mono text-xs text-neutral-500">
                         {job.displayNo}

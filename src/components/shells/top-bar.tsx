@@ -7,12 +7,14 @@ import type { DeskNotificationCounts } from "@/lib/notifications/counts";
 
 export function TopBar({
   shopName,
+  tradeLabel,
   logoutMode = "desk",
   notificationCounts,
   notificationsMissing,
   showPlatformAdmin = false,
 }: {
   shopName: string;
+  tradeLabel?: string;
   logoutMode?: "desk" | "staff";
   notificationCounts?: DeskNotificationCounts;
   notificationsMissing?: boolean;
@@ -24,7 +26,14 @@ export function TopBar({
         <Logo variant="mark" tone="light" href={logoutMode === "desk" ? "/today" : null} />
         <div className="min-w-0">
           <p className="truncate text-sm font-semibold text-neutral-950">{shopName}</p>
-          <IstanbulDateLabel className="text-xs text-neutral-500" />
+          <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5">
+            {tradeLabel ? (
+              <span className="text-[11px] font-medium text-neutral-500">
+                {tradeLabel}
+              </span>
+            ) : null}
+            <IstanbulDateLabel className="text-xs text-neutral-500" />
+          </div>
         </div>
       </div>
       <div className="flex items-center gap-1">

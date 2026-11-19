@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { BoardColumns } from "@/components/desk/board-columns";
+import { BoardList } from "@/components/desk/board-list";
 import { JobSearch } from "@/components/desk/job-search";
 import { PageHeader } from "@/components/shells/page-header";
 import { SchemaHintBanner } from "@/components/ui/schema-hint-banner";
@@ -10,7 +11,9 @@ import {
   searchWorkOrders,
 } from "@/lib/data/work-orders";
 import { boardColumnForStatus } from "@/lib/assignments/rules";
-import { isWorkOrderStatus, STATUS_LABELS } from "@/lib/work-orders/status";
+import { getTradeProfile, statusLabelFor } from "@/lib/trade/profile";
+import { workOrderLabel } from "@/lib/work-orders/display";
+import { isWorkOrderStatus } from "@/lib/work-orders/status";
 
 export default async function BoardPage({
   searchParams,
@@ -23,6 +26,7 @@ export default async function BoardPage({
   }>;
 }) {
   const ctx = await requireDeskSession();
+  const profile = getTradeProfile(ctx.workspace.tradeKind);
   const query = await searchParams;
   const statusFilter =
     query.status && isWorkOrderStatus(query.status)
@@ -55,27 +59,31 @@ export default async function BoardPage({
   })();
 
   const hasFilter = Boolean(query.assignee || statusFilter || unassigned);
+  const listMode =
+    profile.boardVariant === "queue" || profile.boardVariant === "counterList";
 
   return (
     <div className="flex flex-col gap-4">
       <PageHeader
-        title="Tahta"
-        description="Sürükle = durum. Usta seçince kaydolur."
+        title={profile.labels.boardTitle}
+        description={profile.labels.boardDescription}
         action={
-          <div className="flex flex-wrap gap-2">
-            <Link
-              href="/board?unassigned=1"
-              className="inline-flex h-8 items-center rounded-full border border-neutral-300 bg-white px-3 text-xs font-medium text-neutral-800 hover:bg-neutral-50"
-            >
-              Atanmamış
-            </Link>
-            <Link
-              href="/load"
-              className="inline-flex h-8 items-center rounded-full border border-neutral-300 bg-white px-3 text-xs font-medium text-neutral-800 hover:bg-neutral-50"
-            >
-              Yük
-            </Link>
-          </div>
+          profile.family === "workshop" ? (
+            <div className="flex flex-wrap gap-2">
+              <Link
+                href="/board?unassigned=1"
+                className="inline-flex h-8 items-center rounded-full border border-neutral-300 bg-white px-3 text-xs font-medium text-neutral-800 hover:bg-neutral-50"
+              >
+                Atanmamış
+              </Link>
+              <Link
+                href="/load"
+                className="inline-flex h-8 items-center rounded-full border border-neutral-300 bg-white px-3 text-xs font-medium text-neutral-800 hover:bg-neutral-50"
+              >
+                Yük
+              </Link>
+            </div>
+          ) : null
         }
       />
 
@@ -86,7 +94,9 @@ export default async function BoardPage({
           Filtre:{" "}
           {unassigned ? "atanmamış" : null}
           {unassigned && (statusFilter || query.assignee) ? " · " : null}
-          {statusFilter ? STATUS_LABELS[statusFilter] : null}
+          {statusFilter
+            ? statusLabelFor(ctx.workspace.tradeKind, statusFilter)
+            : null}
           {statusFilter && query.assignee ? " · " : null}
           {query.assignee ? "usta seçili" : null}{" "}
           <Link href="/board" className="underline-offset-2 hover:underline">
@@ -108,9 +118,18 @@ export default async function BoardPage({
                     href={`/jobs/${job.id}`}
                     className="flex justify-between px-4 py-3 text-sm"
                   >
-                    <span className="font-mono tracking-wide">{job.plate}</span>
+                    <span
+                      className={
+                        job.counterTitle
+                          ? "font-medium"
+                          : "font-mono tracking-wide"
+                      }
+                    >
+                      {workOrderLabel(job)}
+                    </span>
                     <span className="text-neutral-500">
-                      {job.displayNo ?? STATUS_LABELS[job.status]}
+                      {job.displayNo ??
+                        statusLabelFor(ctx.workspace.tradeKind, job.status)}
                     </span>
                   </Link>
                 </li>
@@ -122,12 +141,20 @@ export default async function BoardPage({
 
       <SchemaHintBanner missing={board.schemaMissing} quietProd />
 
-      <BoardColumns
-        columns={board.columns}
-        mechanics={mechanics}
-        returnTo={returnTo}
-        highlightStatus={statusFilter}
-      />
+      {listMode ? (
+        <BoardList
+          columns={board.columns}
+          profile={profile}
+          counterControls={profile.boardVariant === "counterList"}
+        />
+      ) : (
+        <BoardColumns
+          columns={board.columns}
+          mechanics={mechanics}
+          returnTo={returnTo}
+          highlightStatus={statusFilter}
+        />
+      )}
     </div>
   );
 }

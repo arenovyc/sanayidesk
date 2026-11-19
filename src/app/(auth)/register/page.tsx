@@ -5,18 +5,31 @@ import { Card } from "@/components/ui/card";
 import { getAuthUser, getSessionContext } from "@/lib/auth/get-membership";
 import { homeForRole } from "@/lib/auth/roles";
 import { TRIAL_DAYS } from "@/lib/pricing";
+import { isTradeKind, type TradeKind } from "@/lib/trade/kinds";
 
-export default function RegisterPage() {
+export default function RegisterPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ tur?: string }>;
+}) {
   return (
     <Suspense fallback={<p className="text-sm text-neutral-500">Yükleniyor…</p>}>
-      <RegisterBody />
+      <RegisterBody searchParams={searchParams} />
     </Suspense>
   );
 }
 
-async function RegisterBody() {
+async function RegisterBody({
+  searchParams,
+}: {
+  searchParams: Promise<{ tur?: string }>;
+}) {
   const ctx = await getSessionContext();
   if (ctx) redirect(homeForRole(ctx.membership.role));
+
+  const query = await searchParams;
+  const defaultTradeKind: TradeKind =
+    query.tur && isTradeKind(query.tur) ? query.tur : "tamir";
 
   const authUser = await getAuthUser();
   const oauthMode = Boolean(authUser);
@@ -40,6 +53,7 @@ async function RegisterBody() {
         oauthMode={oauthMode}
         defaultEmail={defaultEmail}
         defaultFullName={defaultFullName}
+        defaultTradeKind={defaultTradeKind}
       />
     </Card>
   );

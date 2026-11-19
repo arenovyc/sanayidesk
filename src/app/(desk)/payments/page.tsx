@@ -5,6 +5,7 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { requireDeskSession } from "@/lib/auth/get-membership";
 import { listRecentPayments } from "@/lib/data/work-orders";
 import { formatMoney } from "@/lib/format/money";
+import { workOrderLabel } from "@/lib/work-orders/display";
 
 const METHOD_LABELS: Record<string, string> = {
   cash: "Nakit",
@@ -43,9 +44,12 @@ export default async function PaymentsPage() {
                 >
                   <span>
                     <span
-                      className={`font-mono tracking-wide ${voided ? "text-neutral-400 line-through" : ""}`}
+                      className={`${payment.plate ? "font-mono tracking-wide" : "font-medium"} ${voided ? "text-neutral-400 line-through" : ""}`}
                     >
-                      {payment.plate ?? "İş"}
+                      {workOrderLabel({
+                        plate: payment.plate ?? "",
+                        counterTitle: payment.counterTitle ?? null,
+                      })}
                     </span>
                     {payment.displayNo ? (
                       <span className="ml-2 font-mono text-xs text-neutral-400">

@@ -4,7 +4,10 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { NetworkSettingsForm } from "@/components/desk/network-settings-form";
 import { SettingsNameForm } from "@/components/desk/settings-form";
+import { TradeKindForm } from "@/components/desk/trade-kind-form";
+import { PageHeader } from "@/components/shells/page-header";
 import { requireDeskSession } from "@/lib/auth/get-membership";
+import { getTradeProfile } from "@/lib/trade/profile";
 
 export default function SettingsPage() {
   return (
@@ -24,9 +27,16 @@ async function SettingsBody() {
       })
     : "—";
 
+  const profile = getTradeProfile(ctx.workspace.tradeKind);
+
   return (
     <div className="flex flex-col gap-5">
-      <h1 className="text-xl font-semibold">Ayarlar</h1>
+      <PageHeader
+        title="Ayarlar"
+        backHref="/more"
+        backLabel="Daha fazla"
+        description="Dükkan profili, tür ve ağ."
+      />
       <p className="text-sm text-neutral-500">
         <Link
           href="/settings/account"
@@ -41,6 +51,10 @@ async function SettingsBody() {
           <dd className="font-mono">{ctx.workspace.slug}</dd>
         </div>
         <div className="flex justify-between py-1.5">
+          <dt className="text-neutral-500">Tür</dt>
+          <dd>{profile.label}</dd>
+        </div>
+        <div className="flex justify-between py-1.5">
           <dt className="text-neutral-500">Plan</dt>
           <dd>{ctx.workspace.plan}</dd>
         </div>
@@ -49,6 +63,7 @@ async function SettingsBody() {
           <dd>{trialLabel}</dd>
         </div>
       </dl>
+      <TradeKindForm current={ctx.workspace.tradeKind} />
       <SettingsNameForm
         defaultName={ctx.workspace.name}
         defaultPhone={ctx.workspace.settings.phone ?? ""}
