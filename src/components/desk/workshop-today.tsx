@@ -87,22 +87,6 @@ export async function WorkshopToday({
         <AcceptForm />
       </section>
 
-      {board.jobs.length === 0 ? (
-        <EmptyState
-          icon={Car}
-          title={profile.labels.emptyToday}
-          description="İlk plakayı yukarıdaki kutuya yaz — iş emri hemen açılır."
-        />
-      ) : (
-        <ul className="flex flex-col gap-2">
-          {board.jobs.map((job) => (
-            <li key={job.id}>
-              <JobRow job={job} tradeKind={tradeKind} />
-            </li>
-          ))}
-        </ul>
-      )}
-
       <dl className="grid grid-cols-3 gap-2 text-center">
         {TODAY_BUCKETS.map((bucket) => (
           <Link
@@ -137,7 +121,21 @@ export async function WorkshopToday({
             </ul>
           )}
         </section>
-      ) : null}
+      ) : board.jobs.length === 0 ? (
+        <EmptyState
+          icon={Car}
+          title={profile.labels.emptyToday}
+          description="İlk plakayı yukarıdaki kutuya yaz — iş emri hemen açılır."
+        />
+      ) : (
+        <ul className="flex flex-col gap-2">
+          {board.jobs.map((job) => (
+            <li key={job.id}>
+              <JobRow job={job} tradeKind={tradeKind} />
+            </li>
+          ))}
+        </ul>
+      )}
 
       {!appointments.schemaMissing && appointments.rows.length > 0 ? (
         <section className="flex flex-col gap-2">

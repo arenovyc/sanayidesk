@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Sheet } from "@/components/ui/sheet";
 import { formatMoney } from "@/lib/format/money";
 import { toastError } from "@/lib/ui/toast";
+import { cn } from "@/lib/utils";
 import {
   allowedTransitions,
   STATUS_LABELS,
@@ -16,6 +17,9 @@ import {
 } from "@/lib/work-orders/status";
 
 const initial: JobActionState = { error: null };
+
+const chipBase =
+  "inline-flex h-10 items-center justify-center rounded-xl px-3.5 text-sm font-medium transition-colors disabled:opacity-50";
 
 export function JobStatusForm({
   id,
@@ -51,6 +55,27 @@ export function JobStatusForm({
       ? remaining > 0
       : false;
 
+  const openNext = next.filter((value) => value !== "cancelled");
+  const canCancel = next.includes("cancelled");
+
+  function submitStatus(value: WorkOrderStatus) {
+    if (
+      (value === "ready" || value === "delivered") &&
+      remaining > 0
+    ) {
+      setPendingStatus(value);
+      return;
+    }
+    const fd = new FormData();
+    fd.set("id", id);
+    fd.set("status", value);
+    if (value === "cancelled" && returnToOnCancel) {
+      fd.set("returnTo", returnToOnCancel);
+    }
+    if (value === "delivered" && setRemind) fd.set("setRemind", "1");
+    action(fd);
+  }
+
   return (
     <div className="flex flex-col gap-3">
       {next.includes("delivered") ? (
@@ -66,35 +91,39 @@ export function JobStatusForm({
       ) : null}
 
       <div className="flex flex-wrap gap-2">
-        {next.map((value) => (
-          <Button
+        <span
+          className={cn(chipBase, "bg-neutral-950 text-white")}
+          aria-current="true"
+        >
+          {STATUS_LABELS[status]}
+        </span>
+        {openNext.map((value) => (
+          <button
             key={value}
             type="button"
-            size="sm"
-            variant={value === "cancelled" ? "outline" : "default"}
             disabled={pending}
-            className="rounded-full px-3.5"
-            onClick={() => {
-              if (
-                (value === "ready" || value === "delivered") &&
-                remaining > 0
-              ) {
-                setPendingStatus(value);
-                return;
-              }
-              const fd = new FormData();
-              fd.set("id", id);
-              fd.set("status", value);
-              if (value === "cancelled" && returnToOnCancel) {
-                fd.set("returnTo", returnToOnCancel);
-              }
-              if (value === "delivered" && setRemind) fd.set("setRemind", "1");
-              action(fd);
-            }}
+            className={cn(
+              chipBase,
+              "border border-neutral-200 bg-white text-neutral-700 hover:bg-neutral-50",
+            )}
+            onClick={() => submitStatus(value)}
           >
             {STATUS_LABELS[value]}
-          </Button>
+          </button>
         ))}
+        {canCancel ? (
+          <button
+            type="button"
+            disabled={pending}
+            className={cn(
+              chipBase,
+              "border border-neutral-200 bg-white text-neutral-700 hover:bg-neutral-50",
+            )}
+            onClick={() => submitStatus("cancelled")}
+          >
+            {STATUS_LABELS.cancelled}
+          </button>
+        ) : null}
       </div>
 
       <Sheet

@@ -1,13 +1,13 @@
 "use client";
 
-import { useActionState, useRef } from "react";
+import { useActionState, useEffect, useRef } from "react";
 import {
   assignWorkOrderAction,
   type AssignActionState,
 } from "@/app/(desk)/assign-actions";
-import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import type { TeamMember } from "@/lib/data/ops";
+import { toastError, toastSuccess } from "@/lib/ui/toast";
 
 const initial: AssignActionState = { error: null };
 
@@ -26,6 +26,23 @@ export function AssignForm({
 }) {
   const [state, action, pending] = useActionState(assignWorkOrderAction, initial);
   const formRef = useRef<HTMLFormElement>(null);
+  const lastToastRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    if (state.error) {
+      toastError(state.error);
+      return;
+    }
+    // Success after submit: action returns { error: null } — toast once per pending cycle
+    if (!pending && state.error === null && lastToastRef.current === "pending") {
+      toastSuccess("Usta kaydedildi");
+      lastToastRef.current = "done";
+    }
+  }, [state, pending]);
+
+  useEffect(() => {
+    if (pending) lastToastRef.current = "pending";
+  }, [pending]);
 
   return (
     <form
@@ -36,40 +53,27 @@ export function AssignForm({
       <input type="hidden" name="workOrderId" value={workOrderId} />
       <input type="hidden" name="returnTo" value={returnTo} />
       {!compact ? <Label htmlFor={`assignee-${workOrderId}`}>Usta</Label> : null}
-      <div className={compact ? "flex gap-1" : "flex flex-col gap-2"}>
-        <select
-          id={`assignee-${workOrderId}`}
-          name="membershipId"
-          defaultValue={currentMembershipId ?? ""}
-          disabled={pending || mechanics.length === 0}
-          className={
-            compact
-              ? "h-9 w-full rounded-lg border border-neutral-200 bg-white px-2 text-sm disabled:opacity-50"
-              : "h-10 flex-1 rounded-lg border border-neutral-200 bg-white px-2 text-sm disabled:opacity-50"
-          }
-          onChange={() => {
-            if (compact) formRef.current?.requestSubmit();
-          }}
-        >
-          <option value="">Atanmamış</option>
-          {mechanics.map((member) => (
-            <option key={member.id} value={member.id}>
-              {member.displayName || "Usta"}
-            </option>
-          ))}
-        </select>
-        {!compact ? (
-          <Button
-            type="submit"
-            size="sm"
-            variant="outline"
-            disabled={pending || mechanics.length === 0}
-            className="sm:w-fit"
-          >
-            Kaydet
-          </Button>
-        ) : null}
-      </div>
+      <select
+        id={`assignee-${workOrderId}`}
+        name="membershipId"
+        defaultValue={currentMembershipId ?? ""}
+        disabled={pending || mechanics.length === 0}
+        className={
+          compact
+            ? "h-9 w-full rounded-lg border border-neutral-200 bg-white px-2 text-sm disabled:opacity-50"
+            : "h-10 w-full rounded-lg border border-neutral-200 bg-white px-2 text-sm disabled:opacity-50"
+        }
+        onChange={() => {
+          formRef.current?.requestSubmit();
+        }}
+      >
+        <option value="">Atanmamış</option>
+        {mechanics.map((member) => (
+          <option key={member.id} value={member.id}>
+            {member.displayName || "Usta"}
+          </option>
+        ))}
+      </select>
       {state.error ? <p className="text-xs text-red-700">{state.error}</p> : null}
     </form>
   );

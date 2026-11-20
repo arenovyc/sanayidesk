@@ -46,11 +46,11 @@ export function JobDetailTabs({
   return (
     <div className="flex flex-col gap-4">
       {summary}
-      <div className="sticky top-[env(safe-area-inset-top,0px)] z-10 -mx-4 border-b border-neutral-200/80 bg-neutral-50/95 px-4 py-2 backdrop-blur">
+      <div className="sticky top-[calc(env(safe-area-inset-top,0px)+3.5rem)] z-10 -mx-4 border-b border-neutral-200 bg-white px-4 py-2">
         <div
           role="tablist"
           aria-label="İş emri bölümleri"
-          className="flex gap-1 overflow-x-auto rounded-xl bg-neutral-200/70 p-1"
+          className="flex gap-1 overflow-x-auto rounded-xl bg-neutral-100 p-1"
         >
           {tabs.map((item) => {
             const active = tab === item.id;

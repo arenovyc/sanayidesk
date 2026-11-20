@@ -11,7 +11,7 @@ import { getTradeProfile } from "@/lib/trade/profile";
 
 function TopBarFallback() {
   return (
-    <header className="flex items-center justify-between gap-3 border-b border-neutral-200 bg-white px-4 py-3 pt-[max(0.75rem,env(safe-area-inset-top))] print:hidden">
+    <header className="sticky top-0 z-20 flex items-center justify-between gap-3 border-b border-neutral-200 bg-white px-4 py-3 pt-[max(0.75rem,env(safe-area-inset-top,0px))] print:hidden">
       <div className="flex min-w-0 items-center gap-3">
         <div className="size-8 shrink-0 rounded-lg bg-neutral-950" />
         <div className="min-w-0 space-y-1.5">
@@ -81,7 +81,7 @@ export function DeskFrame({ children }: { children: React.ReactNode }) {
       <Suspense fallback={<TopBarFallback />}>
         <DeskTopBar />
       </Suspense>
-      <main className="mx-auto flex w-full max-w-lg flex-1 flex-col px-4 pb-[calc(6rem+env(safe-area-inset-bottom))] pt-4 md:max-w-5xl lg:max-w-7xl">
+      <main className="mx-auto flex w-full max-w-lg flex-1 flex-col px-4 pb-[max(7rem,calc(6rem+env(safe-area-inset-bottom)))] pt-4 md:max-w-5xl lg:max-w-7xl">
         {children}
       </main>
       <Suspense

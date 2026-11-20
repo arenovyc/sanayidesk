@@ -3,6 +3,7 @@
 import { useTransition } from "react";
 import { setVehicleCheckupAction } from "@/app/(desk)/jobs/checkup-actions";
 import type { VehicleCheckup, VehicleCheckupLevel } from "@/lib/work-orders/types";
+import { toastError, toastSuccess } from "@/lib/ui/toast";
 import { cn } from "@/lib/utils";
 
 const ITEMS: { key: keyof VehicleCheckup; label: string }[] = [
@@ -32,9 +33,15 @@ export function VehicleCheckupPanel({
 
   return (
     <section className="flex flex-col gap-2">
-      <h2 className="text-sm font-medium text-neutral-500">
-        Hızlı araç kontrolü
-      </h2>
+      <div>
+        <h2 className="text-sm font-medium text-neutral-500">
+          Hızlı araç kontrolü
+        </h2>
+        <p className="mt-0.5 text-xs text-neutral-500">
+          İsteğe bağlı. Yakında / Acil seçilenler müşteri onay linkinde görünür;
+          dokununca kaydedilir.
+        </p>
+      </div>
       <ul className="divide-y divide-neutral-100 overflow-hidden rounded-2xl border border-neutral-200 bg-white">
         {ITEMS.map((item) => {
           const current = checkup[item.key];
@@ -54,7 +61,7 @@ export function VehicleCheckupPanel({
                       "rounded-full px-2 py-0.5 text-[11px] font-medium",
                       current === level.value
                         ? level.className
-                        : "bg-neutral-100 text-neutral-600",
+                        : "border border-neutral-200 bg-white text-neutral-600 hover:bg-neutral-50",
                     )}
                     onClick={() => {
                       const next: VehicleCheckup = {
@@ -62,7 +69,12 @@ export function VehicleCheckupPanel({
                         [item.key]: level.value,
                       };
                       startTransition(async () => {
-                        await setVehicleCheckupAction(workOrderId, next);
+                        const result = await setVehicleCheckupAction(
+                          workOrderId,
+                          next,
+                        );
+                        if (result.error) toastError(result.error);
+                        else toastSuccess("Kontrol kaydedildi");
                       });
                     }}
                   >

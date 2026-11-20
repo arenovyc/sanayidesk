@@ -21,7 +21,7 @@ export function TopBar({
   showPlatformAdmin?: boolean;
 }) {
   return (
-    <header className="flex items-center justify-between gap-3 border-b border-neutral-200 bg-white px-4 py-3 pt-[max(0.75rem,env(safe-area-inset-top))] print:hidden">
+    <header className="sticky top-0 z-20 flex items-center justify-between gap-3 border-b border-neutral-200 bg-white px-4 py-3 pt-[max(0.75rem,env(safe-area-inset-top,0px))] print:hidden">
       <div className="flex min-w-0 items-center gap-3">
         <Logo variant="mark" tone="light" href={logoutMode === "desk" ? "/today" : null} />
         <div className="min-w-0">

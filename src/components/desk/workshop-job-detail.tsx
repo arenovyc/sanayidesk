@@ -1,5 +1,6 @@
 import { Suspense, type ReactNode } from "react";
 import Link from "next/link";
+import { Printer } from "lucide-react";
 import { BackLink } from "@/components/shells/back-link";
 import { JobDetailIsPanel } from "@/components/desk/job-detail-is-panel";
 import { RemoveSampleJobBanner } from "@/components/desk/remove-sample-job-banner";
@@ -131,13 +132,21 @@ export function WorkshopJobDetail({
               </span>
             ) : null}
           </div>
-          <p className="mt-1 text-sm text-neutral-500">
-            Toplam <Money amount={job.due} tone="muted" /> · Kalan{" "}
-            <Money amount={remaining} tone={remaining > 0 ? "debt" : "paid"} />
-          </p>
+          {job.due > 0 || remaining > 0 ? (
+            <p className="mt-1 text-sm text-neutral-500">
+              Toplam <Money amount={job.due} tone="muted" /> · Kalan{" "}
+              <Money
+                amount={remaining}
+                tone={remaining > 0 ? "debt" : "paid"}
+              />
+            </p>
+          ) : null}
         </div>
-        <Button asChild variant="ghost" size="sm">
-          <Link href={`/jobs/${job.id}/print`}>Yazdır</Link>
+        <Button asChild variant="outline" size="sm" className="shrink-0 gap-1.5">
+          <Link href={`/jobs/${job.id}/print`}>
+            <Printer className="size-4" aria-hidden />
+            Yazdır
+          </Link>
         </Button>
       </div>
       {existing === "1" ? (
@@ -176,6 +185,8 @@ export function WorkshopJobDetail({
           <ClearApprovalQuestionButton id={job.id} />
         </div>
       ) : null}
+
+      {assignSection}
 
       <section className="flex flex-col gap-2">
         <h2 className="text-sm font-medium text-neutral-500">Durum</h2>
@@ -285,8 +296,6 @@ export function WorkshopJobDetail({
           checkup={job.vehicleCheckup}
         />
       ) : null}
-
-      {assignSection}
 
       {!sections.mediaFirst ? mediaSection : null}
     </>
