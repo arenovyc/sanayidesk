@@ -1,9 +1,9 @@
 "use client";
 
-import { useTransition } from "react";
+import { useState, useTransition } from "react";
 import { setVehicleCheckupAction } from "@/app/(desk)/jobs/checkup-actions";
 import type { VehicleCheckup, VehicleCheckupLevel } from "@/lib/work-orders/types";
-import { toastError, toastSuccess } from "@/lib/ui/toast";
+import { toastError } from "@/lib/ui/toast";
 import { cn } from "@/lib/utils";
 
 const ITEMS: { key: keyof VehicleCheckup; label: string }[] = [
@@ -29,7 +29,9 @@ export function VehicleCheckupPanel({
   workOrderId: string;
   checkup: VehicleCheckup;
 }) {
-  const [pending, startTransition] = useTransition();
+  const [local, setLocal] = useState<VehicleCheckup>(checkup);
+  const [savingKey, setSavingKey] = useState<keyof VehicleCheckup | null>(null);
+  const [, startTransition] = useTransition();
 
   return (
     <section className="flex flex-col gap-2">
@@ -44,7 +46,7 @@ export function VehicleCheckupPanel({
       </div>
       <ul className="divide-y divide-neutral-100 overflow-hidden rounded-2xl border border-neutral-200 bg-white">
         {ITEMS.map((item) => {
-          const current = checkup[item.key];
+          const current = local[item.key];
           return (
             <li
               key={item.key}
@@ -56,25 +58,35 @@ export function VehicleCheckupPanel({
                   <button
                     key={level.value}
                     type="button"
-                    disabled={pending}
+                    disabled={savingKey === item.key}
                     className={cn(
                       "rounded-full px-2 py-0.5 text-[11px] font-medium",
                       current === level.value
                         ? level.className
                         : "border border-neutral-200 bg-white text-neutral-600 hover:bg-neutral-50",
+                      savingKey === item.key && current === level.value
+                        ? "opacity-80"
+                        : null,
                     )}
                     onClick={() => {
+                      if (current === level.value) return;
+                      const prev = local;
                       const next: VehicleCheckup = {
-                        ...checkup,
+                        ...local,
                         [item.key]: level.value,
                       };
+                      setLocal(next);
+                      setSavingKey(item.key);
                       startTransition(async () => {
                         const result = await setVehicleCheckupAction(
                           workOrderId,
                           next,
                         );
-                        if (result.error) toastError(result.error);
-                        else toastSuccess("Kontrol kaydedildi");
+                        setSavingKey(null);
+                        if (result.error) {
+                          setLocal(prev);
+                          toastError(result.error);
+                        }
                       });
                     }}
                   >

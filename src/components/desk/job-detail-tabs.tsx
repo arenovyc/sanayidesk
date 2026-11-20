@@ -46,7 +46,7 @@ export function JobDetailTabs({
   return (
     <div className="flex flex-col gap-4">
       {summary}
-      <div className="sticky top-[calc(env(safe-area-inset-top,0px)+3.5rem)] z-10 -mx-4 border-b border-neutral-200 bg-white px-4 py-2">
+      <div className="sticky top-[var(--desk-header-h,6.5rem)] z-10 -mx-4 border-b border-neutral-200 bg-white px-4 py-2">
         <div
           role="tablist"
           aria-label="İş emri bölümleri"

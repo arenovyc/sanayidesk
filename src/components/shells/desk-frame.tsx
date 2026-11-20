@@ -1,5 +1,6 @@
 import { Suspense } from "react";
 import { BottomNav } from "@/components/shells/bottom-nav";
+import { DeskHeaderShell } from "@/components/shells/desk-header-shell";
 import { TopBar } from "@/components/shells/top-bar";
 import { TrialBanner } from "@/components/shells/trial-banner";
 import {
@@ -11,7 +12,7 @@ import { getTradeProfile } from "@/lib/trade/profile";
 
 function TopBarFallback() {
   return (
-    <header className="sticky top-0 z-20 flex items-center justify-between gap-3 border-b border-neutral-200 bg-white px-4 py-3 pt-[max(0.75rem,env(safe-area-inset-top,0px))] print:hidden">
+    <header className="flex items-center justify-between gap-3 bg-white px-4 py-3 print:hidden">
       <div className="flex min-w-0 items-center gap-3">
         <div className="size-8 shrink-0 rounded-lg bg-neutral-950" />
         <div className="min-w-0 space-y-1.5">
@@ -26,7 +27,7 @@ function TopBarFallback() {
 
 function BottomNavFallback({ labels }: { labels: string[] }) {
   return (
-    <nav className="fixed inset-x-0 bottom-0 z-20 border-t border-neutral-200 bg-white/95 pb-[env(safe-area-inset-bottom)] backdrop-blur print:hidden">
+    <nav className="fixed inset-x-0 bottom-0 z-20 border-t border-neutral-200 bg-white pb-[env(safe-area-inset-bottom)] print:hidden">
       <ul className="mx-auto flex max-w-lg">
         {labels.map((label) => (
           <li key={label} className="flex-1">
@@ -41,7 +42,7 @@ function BottomNavFallback({ labels }: { labels: string[] }) {
   );
 }
 
-async function DeskTopBar() {
+async function DeskTopChrome() {
   const ctx = await requireDeskSession();
   const { counts, schemaMissing } = await getDeskNotificationCounts(
     ctx.workspace.id,
@@ -78,9 +79,11 @@ async function DeskBottomNav() {
 export function DeskFrame({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex min-h-dvh flex-col bg-neutral-50">
-      <Suspense fallback={<TopBarFallback />}>
-        <DeskTopBar />
-      </Suspense>
+      <DeskHeaderShell>
+        <Suspense fallback={<TopBarFallback />}>
+          <DeskTopChrome />
+        </Suspense>
+      </DeskHeaderShell>
       <main className="mx-auto flex w-full max-w-lg flex-1 flex-col px-4 pb-[max(7rem,calc(6rem+env(safe-area-inset-bottom)))] pt-4 md:max-w-5xl lg:max-w-7xl">
         {children}
       </main>

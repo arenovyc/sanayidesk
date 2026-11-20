@@ -1,6 +1,5 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
 import { requireDeskSession } from "@/lib/auth/get-membership";
 import { MISSING_SUPABASE_ENV } from "@/lib/supabase/env";
 import { createServerSupabase } from "@/lib/supabase/server";
@@ -25,6 +24,6 @@ export async function setVehicleCheckupAction(
     }
     return { error: error.message };
   }
-  revalidatePath(`/jobs/${workOrderId}`, "page");
+  // No full-page revalidate — UI updates optimistically.
   return { error: null };
 }
