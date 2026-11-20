@@ -15,6 +15,7 @@ const PUBLIC_PREFIXES = [
   "/suspended",
   "/apply",
   "/fiyat",
+  "/onay",
 ];
 const STAFF_PREFIXES = ["/lift", "/parts", "/tasks"];
 const STAFF_COOKIE = "sd_staff";
